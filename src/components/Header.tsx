@@ -9,6 +9,9 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { useSaved } from '@/hooks/useSaved';
+import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
+import { SearchSuggestionsDropdown } from '@/components/SearchSuggestionsDropdown';
+import { addRecentSearch } from '@/lib/recent-searches';
 
 interface HeaderProps {
   initialQuery?: string;
@@ -20,6 +23,9 @@ export function Header({ initialQuery = '', showSearch = true }: HeaderProps) {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const saved = useSaved();
+  const suggestions = useSearchSuggestions(query);
+  const [openSuggestions, setOpenSuggestions] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -29,6 +35,7 @@ export function Header({ initialQuery = '', showSearch = true }: HeaderProps) {
       }
       if (e.key === 'Escape') {
         inputRef.current?.blur();
+        setOpenSuggestions(false);
       }
     };
 
@@ -39,7 +46,9 @@ export function Header({ initialQuery = '', showSearch = true }: HeaderProps) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
+      addRecentSearch(query.trim());
       navigate(`/search?q=${encodeURIComponent(query.trim())}`);
+      setOpenSuggestions(false);
     }
   };
 
@@ -60,12 +69,50 @@ export function Header({ initialQuery = '', showSearch = true }: HeaderProps) {
                 type="text"
                 placeholder="search packages..."
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setActiveIndex(0);
+                  setOpenSuggestions(true);
+                }}
+                onFocus={() => setOpenSuggestions(true)}
+                onBlur={() => window.setTimeout(() => setOpenSuggestions(false), 120)}
+                onKeyDown={(e) => {
+                  if (!openSuggestions || suggestions.items.length === 0) return;
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setActiveIndex((i) => Math.min(i + 1, suggestions.items.length - 1));
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setActiveIndex((i) => Math.max(i - 1, 0));
+                  } else if (e.key === "Enter") {
+                    const picked = suggestions.items[activeIndex];
+                    if (picked) {
+                      e.preventDefault();
+                      addRecentSearch(picked.value);
+                      navigate(`/package/${encodeURIComponent(picked.value)}`);
+                      setOpenSuggestions(false);
+                      inputRef.current?.blur();
+                    }
+                  } else if (e.key === "Escape") {
+                    setOpenSuggestions(false);
+                  }
+                }}
                 className="w-full pl-10 pr-12 bg-secondary border-border focus:border-primary font-mono"
               />
               <kbd className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none hidden h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground sm:flex">
                 /
               </kbd>
+              <SearchSuggestionsDropdown
+                open={openSuggestions}
+                items={suggestions.items}
+                activeIndex={activeIndex}
+                onPick={(value) => {
+                  addRecentSearch(value);
+                  navigate(`/package/${encodeURIComponent(value)}`);
+                  setOpenSuggestions(false);
+                  inputRef.current?.blur();
+                }}
+              />
             </div>
           </form>
         )}
@@ -108,8 +155,44 @@ export function Header({ initialQuery = '', showSearch = true }: HeaderProps) {
                     type="text"
                     placeholder="search packages..."
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={(e) => {
+                      setQuery(e.target.value);
+                      setActiveIndex(0);
+                      setOpenSuggestions(true);
+                    }}
+                    onFocus={() => setOpenSuggestions(true)}
+                    onBlur={() => window.setTimeout(() => setOpenSuggestions(false), 120)}
+                    onKeyDown={(e) => {
+                      if (!openSuggestions || suggestions.items.length === 0) return;
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        setActiveIndex((i) => Math.min(i + 1, suggestions.items.length - 1));
+                      } else if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        setActiveIndex((i) => Math.max(i - 1, 0));
+                      } else if (e.key === "Enter") {
+                        const picked = suggestions.items[activeIndex];
+                        if (picked) {
+                          e.preventDefault();
+                          addRecentSearch(picked.value);
+                          navigate(`/package/${encodeURIComponent(picked.value)}`);
+                          setOpenSuggestions(false);
+                        }
+                      } else if (e.key === "Escape") {
+                        setOpenSuggestions(false);
+                      }
+                    }}
                     className="w-full pl-10 bg-secondary border-border font-mono"
+                  />
+                  <SearchSuggestionsDropdown
+                    open={openSuggestions}
+                    items={suggestions.items}
+                    activeIndex={activeIndex}
+                    onPick={(value) => {
+                      addRecentSearch(value);
+                      navigate(`/package/${encodeURIComponent(value)}`);
+                      setOpenSuggestions(false);
+                    }}
                   />
                 </div>
               </form>

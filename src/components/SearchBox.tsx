@@ -2,6 +2,9 @@ import { forwardRef, useState } from 'react';
 import { Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
+import { SearchSuggestionsDropdown } from '@/components/SearchSuggestionsDropdown';
+import { addRecentSearch } from '@/lib/recent-searches';
 
 interface SearchBoxProps {
   className?: string;
@@ -14,11 +17,16 @@ export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
   ({ className, large = false, initialValue = '', autoFocus = false, ...props }, ref) => {
     const [query, setQuery] = useState(initialValue);
     const navigate = useNavigate();
+    const suggestions = useSearchSuggestions(query);
+    const [openSuggestions, setOpenSuggestions] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(0);
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       if (query.trim()) {
+        addRecentSearch(query.trim());
         navigate(`/search?q=${encodeURIComponent(query.trim())}`);
+        setOpenSuggestions(false);
       }
     };
 
@@ -41,7 +49,33 @@ export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
               ref={ref}
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setActiveIndex(0);
+                setOpenSuggestions(true);
+              }}
+              onFocus={() => setOpenSuggestions(true)}
+              onBlur={() => window.setTimeout(() => setOpenSuggestions(false), 120)}
+              onKeyDown={(e) => {
+                if (!openSuggestions || suggestions.items.length === 0) return;
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  setActiveIndex((i) => Math.min(i + 1, suggestions.items.length - 1));
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  setActiveIndex((i) => Math.max(i - 1, 0));
+                } else if (e.key === "Enter") {
+                  const picked = suggestions.items[activeIndex];
+                  if (picked) {
+                    e.preventDefault();
+                    addRecentSearch(picked.value);
+                    navigate(`/package/${encodeURIComponent(picked.value)}`);
+                    setOpenSuggestions(false);
+                  }
+                } else if (e.key === "Escape") {
+                  setOpenSuggestions(false);
+                }
+              }}
               placeholder="Search packages..."
               autoFocus={autoFocus}
               className={cn(
@@ -58,6 +92,16 @@ export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
                 <span className="text-xs">⏎</span> Enter
               </kbd>
             </div>
+            <SearchSuggestionsDropdown
+              open={openSuggestions}
+              items={suggestions.items}
+              activeIndex={activeIndex}
+              onPick={(value) => {
+                addRecentSearch(value);
+                navigate(`/package/${encodeURIComponent(value)}`);
+                setOpenSuggestions(false);
+              }}
+            />
           </div>
         </div>
       </form>

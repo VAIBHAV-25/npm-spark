@@ -7,6 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Loader2, Package, ArrowRight, X, Github, ExternalLink, Check } from 'lucide-react';
+import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
+import { SearchSuggestionsDropdown } from '@/components/SearchSuggestionsDropdown';
+import { addRecentSearch } from '@/lib/recent-searches';
 
 export default function ComparePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -17,6 +20,12 @@ export default function ComparePage() {
   const [pkg2Input, setPkg2Input] = useState(pkg2Param);
   const [pkg1Name, setPkg1Name] = useState(pkg1Param);
   const [pkg2Name, setPkg2Name] = useState(pkg2Param);
+  const pkg1Suggestions = useSearchSuggestions(pkg1Input);
+  const pkg2Suggestions = useSearchSuggestions(pkg2Input);
+  const [pkg1Open, setPkg1Open] = useState(false);
+  const [pkg2Open, setPkg2Open] = useState(false);
+  const [pkg1Active, setPkg1Active] = useState(0);
+  const [pkg2Active, setPkg2Active] = useState(0);
 
   const { data: pkg1Data, isLoading: pkg1Loading, error: pkg1Error } = usePackageDetails(pkg1Name, !!pkg1Name);
   const { data: pkg2Data, isLoading: pkg2Loading, error: pkg2Error } = usePackageDetails(pkg2Name, !!pkg2Name);
@@ -29,9 +38,13 @@ export default function ComparePage() {
 
   const handleCompare = () => {
     if (pkg1Input.trim() && pkg2Input.trim()) {
+      addRecentSearch(pkg1Input.trim());
+      addRecentSearch(pkg2Input.trim());
       setPkg1Name(pkg1Input.trim());
       setPkg2Name(pkg2Input.trim());
       setSearchParams({ pkg1: pkg1Input.trim(), pkg2: pkg2Input.trim() });
+      setPkg1Open(false);
+      setPkg2Open(false);
     }
   };
 
@@ -103,15 +116,64 @@ export default function ComparePage() {
         </div>
 
         {/* Input Form */}
-        <div className="glass-card p-6 mb-8">
+        <div className="glass-card p-6 mb-8 relative z-20">
           <div className="flex flex-col md:flex-row items-center gap-4">
             <div className="flex-1 w-full relative">
               <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 value={pkg1Input}
-                onChange={(e) => setPkg1Input(e.target.value)}
+                onChange={(e) => {
+                  setPkg1Input(e.target.value);
+                  setPkg1Active(0);
+                  setPkg1Open(true);
+                }}
+                onFocus={() => setPkg1Open(true)}
+                onBlur={() => window.setTimeout(() => setPkg1Open(false), 120)}
+                onKeyDown={(e) => {
+                  if (pkg1Open && pkg1Suggestions.items.length > 0) {
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      setPkg1Active((i) => Math.min(i + 1, pkg1Suggestions.items.length - 1));
+                      return;
+                    }
+                    if (e.key === "ArrowUp") {
+                      e.preventDefault();
+                      setPkg1Active((i) => Math.max(i - 1, 0));
+                      return;
+                    }
+                    if (e.key === "Enter") {
+                      const picked = pkg1Suggestions.items[pkg1Active];
+                      if (picked) {
+                        e.preventDefault();
+                        setPkg1Input(picked.value);
+                        setPkg1Open(false);
+                        addRecentSearch(picked.value);
+                        return;
+                      }
+                    }
+                    if (e.key === "Escape") {
+                      setPkg1Open(false);
+                      return;
+                    }
+                  }
+
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleCompare();
+                  }
+                }}
                 placeholder="First package (e.g., react)"
                 className="pl-10 font-mono bg-secondary"
+              />
+              <SearchSuggestionsDropdown
+                open={pkg1Open}
+                items={pkg1Suggestions.items}
+                activeIndex={pkg1Active}
+                onPick={(value) => {
+                  setPkg1Input(value);
+                  setPkg1Open(false);
+                  addRecentSearch(value);
+                }}
               />
             </div>
             <span className="text-muted-foreground font-bold text-xl hidden md:block">vs</span>
@@ -119,9 +181,58 @@ export default function ComparePage() {
               <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 value={pkg2Input}
-                onChange={(e) => setPkg2Input(e.target.value)}
+                onChange={(e) => {
+                  setPkg2Input(e.target.value);
+                  setPkg2Active(0);
+                  setPkg2Open(true);
+                }}
+                onFocus={() => setPkg2Open(true)}
+                onBlur={() => window.setTimeout(() => setPkg2Open(false), 120)}
+                onKeyDown={(e) => {
+                  if (pkg2Open && pkg2Suggestions.items.length > 0) {
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      setPkg2Active((i) => Math.min(i + 1, pkg2Suggestions.items.length - 1));
+                      return;
+                    }
+                    if (e.key === "ArrowUp") {
+                      e.preventDefault();
+                      setPkg2Active((i) => Math.max(i - 1, 0));
+                      return;
+                    }
+                    if (e.key === "Enter") {
+                      const picked = pkg2Suggestions.items[pkg2Active];
+                      if (picked) {
+                        e.preventDefault();
+                        setPkg2Input(picked.value);
+                        setPkg2Open(false);
+                        addRecentSearch(picked.value);
+                        return;
+                      }
+                    }
+                    if (e.key === "Escape") {
+                      setPkg2Open(false);
+                      return;
+                    }
+                  }
+
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleCompare();
+                  }
+                }}
                 placeholder="Second package (e.g., vue)"
                 className="pl-10 font-mono bg-secondary"
+              />
+              <SearchSuggestionsDropdown
+                open={pkg2Open}
+                items={pkg2Suggestions.items}
+                activeIndex={pkg2Active}
+                onPick={(value) => {
+                  setPkg2Input(value);
+                  setPkg2Open(false);
+                  addRecentSearch(value);
+                }}
               />
             </div>
             <Button onClick={handleCompare} className="gap-2" disabled={!pkg1Input.trim() || !pkg2Input.trim()}>
@@ -298,7 +409,7 @@ export default function ComparePage() {
 
         {/* Empty State */}
         {!hasData && !isLoading && !pkg1Error && !pkg2Error && (
-          <div className="glass-card p-12 text-center">
+          <div className="glass-card p-12 text-center relative z-0">
             <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-medium text-foreground mb-2">
               Enter two packages to compare
