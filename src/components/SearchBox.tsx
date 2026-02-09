@@ -11,10 +11,11 @@ interface SearchBoxProps {
   large?: boolean;
   initialValue?: string;
   autoFocus?: boolean;
+  onChange?: (value: string) => void;
 }
 
 export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
-  ({ className, large = false, initialValue = '', autoFocus = false, ...props }, ref) => {
+  ({ className, large = false, initialValue = '', autoFocus = false, onChange, ...props }, ref) => {
     const [query, setQuery] = useState(initialValue);
     const navigate = useNavigate();
     const suggestions = useSearchSuggestions(query);
@@ -57,6 +58,7 @@ export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
                 setQuery(e.target.value);
                 setActiveIndex(0);
                 setOpenSuggestions(e.target.value.trim().length > 0);
+                onChange?.(e.target.value);
               }}
               onFocus={() => setOpenSuggestions(query.trim().length > 0)}
               onBlur={() => window.setTimeout(() => setOpenSuggestions(false), 120)}

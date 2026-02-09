@@ -8,9 +8,11 @@ import { popularPackages } from '@/lib/npm-api';
 import { Package, TrendingUp, Zap, Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { StarfieldEffect } from '@/components/StarfieldEffect';
+import { AISearchResults } from '@/components/AISearchResults';
 
 const Index = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -107,8 +109,14 @@ const Index = () => {
               download trends, and make informed decisions for your next project.
             </p>
 
-            <div className="animate-fade-in-up animation-delay-600">
-              <SearchBox large autoFocus className="mb-8" />
+            <div className="animate-fade-in-up animation-delay-600 space-y-4">
+              <SearchBox 
+                large 
+                autoFocus 
+                className="mb-4"
+                onChange={(value) => setSearchQuery(value)}
+              />
+              <AISearchResults query={searchQuery} />
             </div>
 
             <div className="flex flex-wrap justify-center gap-2 animate-fade-in-up animation-delay-800">

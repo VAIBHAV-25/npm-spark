@@ -38,6 +38,9 @@ import { BundleSizeCard } from '@/components/BundleSizeCard';
 import { GitHubMetrics } from '@/components/GitHubMetrics';
 import { SimilarPackages } from '@/components/SimilarPackages';
 import { PackageHealthCard } from '@/components/PackageHealthCard';
+import { PackageTrendPredictor } from '@/components/PackageTrendPredictor';
+import { FrequentlyPairedPackages } from '@/components/FrequentlyPairedPackages';
+import { VersionUpdateAdvisor } from '@/components/VersionUpdateAdvisor';
 
 export default function PackageDetail() {
   const { name } = useParams<{ name: string }>();
@@ -489,6 +492,9 @@ export default function PackageDetail() {
             {/* Package Health */}
             <PackageHealthCard pkg={pkg} score={score} />
 
+            {/* Version Update Advisor */}
+            <VersionUpdateAdvisor pkg={pkg} currentVersion={latestVersion} />
+
             {/* Bundle Size */}
             <BundleSizeCard packageName={pkg.name} version={latestVersion} />
 
@@ -662,6 +668,12 @@ export default function PackageDetail() {
                 </div>
               </div>
             )}
+
+            {/* AI Trend Prediction */}
+            <PackageTrendPredictor packageName={pkg.name} />
+
+            {/* Frequently Paired Packages */}
+            <FrequentlyPairedPackages packageName={pkg.name} />
 
             {/* Similar Packages */}
             <SimilarPackages packageName={pkg.name} />
