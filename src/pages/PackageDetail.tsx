@@ -32,7 +32,8 @@ import {
   ShieldCheck,
   FileJson,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { StarfieldEffect } from '@/components/StarfieldEffect';
 
 export default function PackageDetail() {
   const { name } = useParams<{ name: string }>();
@@ -44,33 +45,61 @@ export default function PackageDetail() {
   const [showAllVersions, setShowAllVersions] = useState(false);
   const saved = useSaved();
 
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container py-8">
-          <PackageDetailSkeleton />
-        </main>
+      <div className="min-h-screen bg-background relative overflow-hidden">
+        <StarfieldEffect />
+        <div 
+          className="pointer-events-none fixed inset-0 z-30 transition-opacity duration-300"
+          style={{
+            background: `radial-gradient(600px at ${mousePosition.x}px ${mousePosition.y}px, rgba(59, 130, 246, 0.15), transparent 80%)`
+          }}
+        />
+        <div className="relative z-10">
+          <Header />
+          <main className="container py-8">
+            <PackageDetailSkeleton />
+          </main>
+        </div>
       </div>
     );
   }
 
   if (error || !pkg) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container py-8">
-          <div className="glass-card p-8 text-center">
-            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-            <h1 className="text-xl font-semibold mb-2">Package not found</h1>
-            <p className="text-muted-foreground mb-4">
-              The package "{decodedName}" could not be found.
-            </p>
-            <Link to="/">
-              <Button>Back to home</Button>
-            </Link>
-          </div>
-        </main>
+      <div className="min-h-screen bg-background relative overflow-hidden">
+        <StarfieldEffect />
+        <div 
+          className="pointer-events-none fixed inset-0 z-30 transition-opacity duration-300"
+          style={{
+            background: `radial-gradient(600px at ${mousePosition.x}px ${mousePosition.y}px, rgba(59, 130, 246, 0.15), transparent 80%)`
+          }}
+        />
+        <div className="relative z-10">
+          <Header />
+          <main className="container py-8">
+            <div className="glass-card p-8 text-center animate-fade-in-up">
+              <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4 animate-pulse" />
+              <h1 className="text-xl font-semibold mb-2">Package not found</h1>
+              <p className="text-muted-foreground mb-4">
+                The package "{decodedName}" could not be found.
+              </p>
+              <Link to="/">
+                <Button>Back to home</Button>
+              </Link>
+            </div>
+          </main>
+        </div>
       </div>
     );
   }
@@ -96,13 +125,49 @@ export default function PackageDetail() {
   const npmUrl = `https://www.npmjs.com/package/${encodeURIComponent(pkg.name).replace('%40', '@')}`;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      <StarfieldEffect />
       
-      <main className="container py-8" id="main-content" tabIndex={-1}>
-        <div className="mb-6">
+      <div 
+        className="pointer-events-none fixed inset-0 z-30 transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(600px at ${mousePosition.x}px ${mousePosition.y}px, rgba(59, 130, 246, 0.15), transparent 80%)`
+        }}
+      />
+
+      <div className="fixed inset-0 z-0 opacity-20">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '50px 50px',
+          animation: 'grid-flow 20s linear infinite'
+        }} />
+      </div>
+
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-primary/30 rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animation: `float ${5 + Math.random() * 10}s linear infinite`,
+              animationDelay: `${Math.random() * 5}s`
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative z-10">
+        <Header />
+        
+        <main className="container py-8" id="main-content" tabIndex={-1}>
+        <div className="mb-6 animate-fade-in-up">
           <Link to="/">
-            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground hover:scale-105 transition-all">
               <ArrowLeft className="h-4 w-4" />
               Back to home
             </Button>
@@ -113,7 +178,7 @@ export default function PackageDetail() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Header */}
-            <div className="space-y-4">
+            <div className="space-y-4 animate-fade-in-up animation-delay-200">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
                   <h1 className="font-mono text-3xl font-bold text-foreground flex items-center gap-3">
@@ -183,8 +248,8 @@ export default function PackageDetail() {
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-                <div className="stat-card">
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-3 animate-fade-in-up animation-delay-400">
+                <div className="stat-card hover:scale-105 transition-transform">
                   <span className="stat-label">License</span>
                   <span className="stat-value font-mono">{pkg.license || 'N/A'}</span>
                 </div>
@@ -231,10 +296,12 @@ export default function PackageDetail() {
             </div>
 
             {/* Install Command */}
-            <InstallCommand packageName={pkg.name} />
+            <div className="animate-fade-in-up animation-delay-600">
+              <InstallCommand packageName={pkg.name} />
+            </div>
 
             {/* Tabs */}
-            <Tabs defaultValue="readme" className="w-full">
+            <Tabs defaultValue="readme" className="w-full animate-fade-in-up animation-delay-800">
               <TabsList className="w-full justify-start border-b border-border bg-transparent h-auto p-0 gap-0">
                 <TabsTrigger
                   value="readme"
@@ -414,7 +481,7 @@ export default function PackageDetail() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-4">
+          <div className="space-y-4 animate-fade-in-up animation-delay-400">
             {/* Downloads Chart */}
             <DownloadsChart packageName={decodedName} />
 
@@ -596,6 +663,7 @@ export default function PackageDetail() {
           </div>
         </div>
       </main>
+      </div>
     </div>
   );
 }

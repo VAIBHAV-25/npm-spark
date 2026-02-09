@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { usePackageDetails, useWeeklyDownloads, useDownloadsRange, usePackageSearchScore } from '@/hooks/usePackages';
@@ -10,6 +10,7 @@ import { Loader2, Package, ArrowRight, X, Github, ExternalLink, Check } from 'lu
 import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { SearchSuggestionsDropdown } from '@/components/SearchSuggestionsDropdown';
 import { addRecentSearch } from '@/lib/recent-searches';
+import { StarfieldEffect } from '@/components/StarfieldEffect';
 
 export default function ComparePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -26,6 +27,16 @@ export default function ComparePage() {
   const [pkg2Open, setPkg2Open] = useState(false);
   const [pkg1Active, setPkg1Active] = useState(0);
   const [pkg2Active, setPkg2Active] = useState(0);
+
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   const { data: pkg1Data, isLoading: pkg1Loading, error: pkg1Error } = usePackageDetails(pkg1Name, !!pkg1Name);
   const { data: pkg2Data, isLoading: pkg2Loading, error: pkg2Error } = usePackageDetails(pkg2Name, !!pkg2Name);
@@ -253,19 +264,55 @@ export default function ComparePage() {
   ] : [];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      <StarfieldEffect />
       
-      <main className="container py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Compare Packages</h1>
-          <p className="text-muted-foreground">
-            Compare two NPM packages side by side
-          </p>
-        </div>
+      <div 
+        className="pointer-events-none fixed inset-0 z-30 transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(600px at ${mousePosition.x}px ${mousePosition.y}px, rgba(59, 130, 246, 0.15), transparent 80%)`
+        }}
+      />
+
+      <div className="fixed inset-0 z-0 opacity-20">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '50px 50px',
+          animation: 'grid-flow 20s linear infinite'
+        }} />
+      </div>
+
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-primary/30 rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animation: `float ${5 + Math.random() * 10}s linear infinite`,
+              animationDelay: `${Math.random() * 5}s`
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative z-10">
+        <Header />
+        
+        <main className="container py-8">
+          <div className="text-center mb-8 animate-fade-in-up">
+            <h1 className="text-3xl font-bold text-foreground mb-2">Compare Packages</h1>
+            <p className="text-muted-foreground">
+              Compare two NPM packages side by side
+            </p>
+          </div>
 
         {/* Input Form */}
-        <div className="glass-card p-6 mb-8 relative z-20">
+        <div className="glass-card p-6 mb-8 relative z-20 animate-fade-in-up animation-delay-200">
           <div className="flex flex-col md:flex-row items-center gap-4">
             <div className="flex-1 w-full relative">
               <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -404,8 +451,9 @@ export default function ComparePage() {
 
         {/* Loading */}
         {isLoading && (
-          <div className="flex justify-center py-12">
+          <div className="flex flex-col items-center justify-center py-12 animate-fade-in-up">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground mt-4 animate-pulse">Loading packages...</p>
           </div>
         )}
 
@@ -413,7 +461,7 @@ export default function ComparePage() {
         {hasData && !isLoading && (
           <div className="space-y-8 animate-fade-in">
             {/* Package Headers */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up animation-delay-200">
               {[pkg1Data, pkg2Data].map((pkg, idx) => {
                 const gitHub = extractGitHubInfo(pkg.repository?.url);
                 return (
@@ -455,7 +503,7 @@ export default function ComparePage() {
 
             {/* Downloads Chart */}
             {chartData.length > 0 && (
-              <div className="glass-card p-6">
+              <div className="glass-card p-6 animate-fade-in-up animation-delay-400">
                 <h3 className="text-sm font-medium text-foreground mb-4">Downloads Trend (Last 30 Days)</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={chartData}>
@@ -501,7 +549,7 @@ export default function ComparePage() {
             )}
 
             {/* Comparison Table */}
-            <div className="glass-card overflow-x-auto">
+            <div className="glass-card overflow-x-auto animate-fade-in-up animation-delay-600">
               <table className="w-full min-w-[720px]">
                 <thead>
                   <tr className="border-b border-border bg-muted/50">
@@ -569,6 +617,7 @@ export default function ComparePage() {
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 }

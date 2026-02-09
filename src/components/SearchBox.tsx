@@ -37,8 +37,12 @@ export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
           large && 'max-w-2xl mx-auto'
         )}>
           <div className={cn(
-            'absolute inset-0 rounded-xl bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500',
+            'absolute inset-0 rounded-xl bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 animate-gradient',
             large && 'blur-2xl'
+          )} />
+          <div className={cn(
+            'absolute -inset-[1px] rounded-xl bg-gradient-to-r from-primary via-accent to-primary opacity-0 group-focus-within:opacity-50 transition-opacity duration-500 animate-gradient',
+            'blur-sm'
           )} />
           <div className="relative">
             <Search className={cn(
