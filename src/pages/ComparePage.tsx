@@ -319,7 +319,7 @@ export default function ComparePage() {
       <div className="relative z-10">
         <Header />
         
-        <main className="container py-8">
+        <main className="container py-8" style={{ overflow: 'visible' }}>
           <div className="text-center mb-8 animate-fade-in-up">
             <h1 className="text-3xl font-bold text-foreground mb-2">Compare Packages</h1>
             <p className="text-muted-foreground">
@@ -328,9 +328,9 @@ export default function ComparePage() {
           </div>
 
         {/* Input Form */}
-        <div className="glass-card p-6 mb-8 relative z-20 animate-fade-in-up animation-delay-200">
-          <div className="flex flex-col md:flex-row items-center gap-4">
-            <div className="flex-1 w-full relative">
+        <div className="glass-card p-6 mb-8 relative z-20 animate-fade-in-up animation-delay-200" style={{ overflow: 'visible' }}>
+          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+            <div className="flex-1 w-full relative z-30">
               <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 value={pkg1Input}
@@ -378,7 +378,7 @@ export default function ComparePage() {
                 className="pl-10 font-mono bg-secondary"
               />
               <SearchSuggestionsDropdown
-                open={pkg1Open}
+                open={pkg1Open && pkg1Input.trim().length > 0}
                 items={pkg1Suggestions.items}
                 activeIndex={pkg1Active}
                 onPick={(value) => {
@@ -389,7 +389,7 @@ export default function ComparePage() {
               />
             </div>
             <span className="text-muted-foreground font-bold text-xl hidden md:block">vs</span>
-            <div className="flex-1 w-full relative">
+            <div className="flex-1 w-full relative z-30">
               <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 value={pkg2Input}
@@ -437,7 +437,7 @@ export default function ComparePage() {
                 className="pl-10 font-mono bg-secondary"
               />
               <SearchSuggestionsDropdown
-                open={pkg2Open}
+                open={pkg2Open && pkg2Input.trim().length > 0}
                 items={pkg2Suggestions.items}
                 activeIndex={pkg2Active}
                 onPick={(value) => {

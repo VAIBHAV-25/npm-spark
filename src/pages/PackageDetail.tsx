@@ -9,6 +9,7 @@ import { formatDownloads, formatDate, formatBytes, extractGitHubInfo, getGitHubU
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useSaved } from '@/hooks/useSaved';
+import { useToast } from '@/hooks/use-toast';
 import {
   ArrowLeft,
   ExternalLink,
@@ -51,6 +52,7 @@ export default function PackageDetail() {
   const { data: score } = usePackageSearchScore(decodedName, !!decodedName);
   const [showAllVersions, setShowAllVersions] = useState(false);
   const saved = useSaved();
+  const { toast } = useToast();
 
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
@@ -221,6 +223,10 @@ export default function PackageDetail() {
                     className="gap-2"
                     onClick={async () => {
                       await navigator.clipboard.writeText(window.location.href);
+                      toast({
+                        title: "Link copied!",
+                        description: "Package link has been copied to clipboard.",
+                      });
                     }}
                   >
                     <Share2 className="h-4 w-4" />
