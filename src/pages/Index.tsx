@@ -109,29 +109,34 @@ const Index = () => {
               download trends, and make informed decisions for your next project.
             </p>
 
-            <div className="animate-fade-in-up animation-delay-600 space-y-4">
+            <div className="animate-fade-in-up animation-delay-600">
               <SearchBox 
                 large 
                 autoFocus 
-                className="mb-4"
                 onChange={(value) => setSearchQuery(value)}
               />
-              <AISearchResults query={searchQuery} />
+              {searchQuery && searchQuery.trim().length > 0 && (
+                <div className="mt-4">
+                  <AISearchResults query={searchQuery} />
+                </div>
+              )}
             </div>
 
-            <div className="flex flex-wrap justify-center gap-2 animate-fade-in-up animation-delay-800">
-              <span className="text-sm text-muted-foreground">Popular:</span>
-              {popularPackages.slice(0, 8).map((pkg, index) => (
-                <Link
-                  key={pkg}
-                  to={`/package/${pkg}`}
-                  className="chip hover:bg-primary/20 hover:text-primary transition-all hover:scale-105 hover:shadow-lg hover:shadow-primary/20"
-                  style={{ animationDelay: `${800 + index * 50}ms` }}
-                >
-                  {pkg}
-                </Link>
-              ))}
-            </div>
+            {!searchQuery && (
+              <div className="flex flex-wrap justify-center gap-2 mt-6 animate-fade-in-up animation-delay-800">
+                <span className="text-sm text-muted-foreground">Popular:</span>
+                {popularPackages.slice(0, 8).map((pkg, index) => (
+                  <Link
+                    key={pkg}
+                    to={`/package/${pkg}`}
+                    className="chip hover:bg-primary/20 hover:text-primary transition-all hover:scale-105 hover:shadow-lg hover:shadow-primary/20"
+                    style={{ animationDelay: `${800 + index * 50}ms` }}
+                  >
+                    {pkg}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

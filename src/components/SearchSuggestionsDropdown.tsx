@@ -26,12 +26,12 @@ export function SearchSuggestionsDropdown({
   return (
     <div
       className={cn(
-        "absolute left-0 right-0 top-full mt-2 z-[200] glass-card overflow-hidden",
+        "absolute left-0 right-0 top-full mt-2 z-[250] glass-card overflow-hidden shadow-2xl border-2 border-primary/30",
         className,
       )}
       role="listbox"
     >
-      <div className="max-h-[320px] overflow-auto">
+      <div className="max-h-[280px] overflow-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
         {items.map((it, idx) => (
           <button
             key={`${it.type}:${it.value}`}

@@ -24,7 +24,7 @@ export function AISearchResults({ query, onPackageSelect }: AISearchResultsProps
 
   if (isLoading) {
     return (
-      <div className="glass-card p-6 mb-4 animate-fade-in-up">
+      <div className="glass-card p-6 animate-fade-in-up relative z-10 w-full max-w-2xl mx-auto">
         <div className="flex items-center gap-3 mb-4">
           <Brain className="h-5 w-5 text-primary animate-pulse" />
           <h3 className="text-sm font-semibold text-foreground">AI is analyzing your request...</h3>
@@ -41,7 +41,7 @@ export function AISearchResults({ query, onPackageSelect }: AISearchResultsProps
   }
 
   return (
-    <div className="glass-card p-6 mb-4 animate-fade-in-up border-2 border-primary/30">
+    <div className="glass-card p-6 animate-fade-in-up border-2 border-primary/30 relative z-10 w-full max-w-2xl mx-auto">
       <div className="flex items-center gap-3 mb-4">
         <div className="relative">
           <Brain className="h-5 w-5 text-primary" />

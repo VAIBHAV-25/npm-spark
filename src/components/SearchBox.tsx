@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { SearchSuggestionsDropdown } from '@/components/SearchSuggestionsDropdown';
 import { addRecentSearch } from '@/lib/recent-searches';
+import { isNaturalLanguageQuery } from '@/lib/ai-search';
 
 interface SearchBoxProps {
   className?: string;
@@ -45,7 +46,7 @@ export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
             'absolute -inset-[1px] rounded-xl bg-gradient-to-r from-primary via-accent to-primary opacity-0 group-focus-within:opacity-50 transition-opacity duration-500 animate-gradient',
             'blur-sm'
           )} />
-          <div className="relative">
+          <div className="relative z-auto">
             <Search className={cn(
               'absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary',
               large ? 'h-6 w-6' : 'h-5 w-5'
@@ -99,7 +100,7 @@ export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
               </kbd>
             </div>
             <SearchSuggestionsDropdown
-              open={openSuggestions}
+              open={openSuggestions && !isNaturalLanguageQuery(query)}
               items={suggestions.items}
               activeIndex={activeIndex}
               onPick={(value) => {
