@@ -4,6 +4,10 @@ import {
   getPackageDetails,
   getWeeklyDownloads,
   getDownloadsRange,
+  getBundleSize,
+  getGitHubRepoInfo,
+  getSimilarPackages,
+  extractGitHubInfo,
 } from '@/lib/npm-api';
 import { NpmSearchResult } from '@/types/npm';
 
@@ -85,6 +89,37 @@ export function usePackageSearchScore(name: string, enabled: boolean = true) {
       const exact = res.objects.find((o) => o.package.name === name);
       return (exact || null) as NpmSearchResult | null;
     },
+    enabled: enabled && name.length > 0,
+    staleTime: 1000 * 60 * 10,
+  });
+}
+
+export function useBundleSize(name: string, version?: string, enabled: boolean = true) {
+  return useQuery({
+    queryKey: ['bundleSize', name, version],
+    queryFn: () => getBundleSize(name, version),
+    enabled: enabled && name.length > 0,
+    staleTime: 1000 * 60 * 60,
+    retry: 1,
+  });
+}
+
+export function useGitHubRepo(repoUrl?: string, enabled: boolean = true) {
+  const repoInfo = repoUrl ? extractGitHubInfo(repoUrl) : null;
+  
+  return useQuery({
+    queryKey: ['githubRepo', repoInfo?.owner, repoInfo?.repo],
+    queryFn: () => repoInfo ? getGitHubRepoInfo(repoInfo.owner, repoInfo.repo) : null,
+    enabled: enabled && !!repoInfo,
+    staleTime: 1000 * 60 * 30,
+    retry: 1,
+  });
+}
+
+export function useSimilarPackages(name: string, enabled: boolean = true) {
+  return useQuery({
+    queryKey: ['similarPackages', name],
+    queryFn: () => getSimilarPackages(name),
     enabled: enabled && name.length > 0,
     staleTime: 1000 * 60 * 10,
   });

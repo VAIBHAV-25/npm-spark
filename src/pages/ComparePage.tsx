@@ -11,6 +11,8 @@ import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { SearchSuggestionsDropdown } from '@/components/SearchSuggestionsDropdown';
 import { addRecentSearch } from '@/lib/recent-searches';
 import { StarfieldEffect } from '@/components/StarfieldEffect';
+import { ComparisonConclusion } from '@/components/ComparisonConclusion';
+import { useBundleSize } from '@/hooks/usePackages';
 
 export default function ComparePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -48,6 +50,8 @@ export default function ComparePage() {
   const { data: pkg2Range } = useDownloadsRange(pkg2Name, 'last-month', !!pkg2Name);
   const { data: pkg1Score } = usePackageSearchScore(pkg1Name, !!pkg1Name);
   const { data: pkg2Score } = usePackageSearchScore(pkg2Name, !!pkg2Name);
+  const { data: pkg1Bundle } = useBundleSize(pkg1Name, pkg1Data?.['dist-tags']?.latest, !!pkg1Name);
+  const { data: pkg2Bundle } = useBundleSize(pkg2Name, pkg2Data?.['dist-tags']?.latest, !!pkg2Name);
 
   const handleCompare = () => {
     if (pkg1Input.trim() && pkg2Input.trim()) {
@@ -197,6 +201,18 @@ export default function ComparePage() {
       pkg1: unpack1 ? formatBytes(unpack1) : 'N/A',
       pkg2: unpack2 ? formatBytes(unpack2) : 'N/A',
       winner: unpack1 !== null && unpack2 !== null ? (unpack1 < unpack2 ? 1 : 2) : undefined,
+    },
+    {
+      label: 'Bundle Size (Minified)',
+      pkg1: pkg1Bundle?.size ? formatBytes(pkg1Bundle.size) : 'N/A',
+      pkg2: pkg2Bundle?.size ? formatBytes(pkg2Bundle.size) : 'N/A',
+      winner: pkg1Bundle?.size && pkg2Bundle?.size ? (pkg1Bundle.size < pkg2Bundle.size ? 1 : 2) : undefined,
+    },
+    {
+      label: 'Bundle Size (Gzipped)',
+      pkg1: pkg1Bundle?.gzip ? formatBytes(pkg1Bundle.gzip) : 'N/A',
+      pkg2: pkg2Bundle?.gzip ? formatBytes(pkg2Bundle.gzip) : 'N/A',
+      winner: pkg1Bundle?.gzip && pkg2Bundle?.gzip ? (pkg1Bundle.gzip < pkg2Bundle.gzip ? 1 : 2) : undefined,
     },
     {
       label: 'File Count',
@@ -547,6 +563,16 @@ export default function ComparePage() {
                 </ResponsiveContainer>
               </div>
             )}
+
+            {/* Smart Recommendation */}
+            <ComparisonConclusion
+              pkg1={pkg1Data}
+              pkg2={pkg2Data}
+              pkg1Downloads={pkg1Downloads}
+              pkg2Downloads={pkg2Downloads}
+              pkg1BundleGzip={pkg1Bundle?.gzip}
+              pkg2BundleGzip={pkg2Bundle?.gzip}
+            />
 
             {/* Comparison Table */}
             <div className="glass-card overflow-x-auto animate-fade-in-up animation-delay-600">

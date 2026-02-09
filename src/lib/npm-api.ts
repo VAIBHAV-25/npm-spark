@@ -3,6 +3,8 @@ import { fetchJson } from '@/lib/http';
 
 const REGISTRY_URL = 'https://registry.npmjs.org';
 const DOWNLOADS_API = 'https://api.npmjs.org/downloads';
+const BUNDLEPHOBIA_API = 'https://bundlephobia.com/api';
+const GITHUB_API = 'https://api.github.com';
 
 export async function searchPackages(
   query: string,
@@ -135,6 +137,73 @@ export function extractGitHubInfo(repoUrl?: string): { owner: string; repo: stri
 
 export function getGitHubUrl(repoInfo: { owner: string; repo: string }): string {
   return `https://github.com/${repoInfo.owner}/${repoInfo.repo}`;
+}
+
+export interface BundleSizeInfo {
+  name: string;
+  version: string;
+  size: number;
+  gzip: number;
+  dependencyCount: number;
+  hasSideEffects: boolean;
+}
+
+export interface GitHubRepoInfo {
+  stargazers_count: number;
+  forks_count: number;
+  open_issues_count: number;
+  watchers_count: number;
+  pushed_at: string;
+  created_at: string;
+  updated_at: string;
+  description: string;
+  language: string;
+  topics: string[];
+  default_branch: string;
+}
+
+export async function getBundleSize(name: string, version?: string): Promise<BundleSizeInfo | null> {
+  const packageSpec = version ? `${name}@${version}` : name;
+  const url = `${BUNDLEPHOBIA_API}/size?package=${encodeURIComponent(packageSpec)}`;
+  
+  try {
+    return await fetchJson<BundleSizeInfo>(url, {
+      cacheKey: `bundle:${packageSpec}`,
+      cacheTtlMs: 1000 * 60 * 60,
+      retries: 1,
+      retryDelayMs: 500,
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function getGitHubRepoInfo(owner: string, repo: string): Promise<GitHubRepoInfo | null> {
+  const url = `${GITHUB_API}/repos/${owner}/${repo}`;
+  
+  try {
+    return await fetchJson<GitHubRepoInfo>(url, {
+      cacheKey: `github:${owner}:${repo}`,
+      cacheTtlMs: 1000 * 60 * 30,
+      retries: 1,
+      retryDelayMs: 500,
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function getSimilarPackages(packageName: string): Promise<string[]> {
+  try {
+    const searchTerms = packageName.split('-').join(' ');
+    const results = await searchPackages(searchTerms, 10, 0);
+    return results.objects
+      .map(obj => obj.package.name)
+      .filter(name => name !== packageName)
+      .slice(0, 5);
+  } catch {
+    return [];
+  }
 }
 
 export const popularPackages = [

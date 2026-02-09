@@ -34,6 +34,10 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { StarfieldEffect } from '@/components/StarfieldEffect';
+import { BundleSizeCard } from '@/components/BundleSizeCard';
+import { GitHubMetrics } from '@/components/GitHubMetrics';
+import { SimilarPackages } from '@/components/SimilarPackages';
+import { PackageHealthCard } from '@/components/PackageHealthCard';
 
 export default function PackageDetail() {
   const { name } = useParams<{ name: string }>();
@@ -482,6 +486,15 @@ export default function PackageDetail() {
 
           {/* Sidebar */}
           <div className="space-y-4 animate-fade-in-up animation-delay-400">
+            {/* Package Health */}
+            <PackageHealthCard pkg={pkg} score={score} />
+
+            {/* Bundle Size */}
+            <BundleSizeCard packageName={pkg.name} version={latestVersion} />
+
+            {/* GitHub Metrics */}
+            <GitHubMetrics repositoryUrl={pkg.repository?.url} />
+
             {/* Downloads Chart */}
             <DownloadsChart packageName={decodedName} />
 
@@ -649,6 +662,9 @@ export default function PackageDetail() {
                 </div>
               </div>
             )}
+
+            {/* Similar Packages */}
+            <SimilarPackages packageName={pkg.name} />
 
             {/* Last Publish */}
             <div className="stat-card">
