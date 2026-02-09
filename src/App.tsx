@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import SearchResults from "./pages/SearchResults";
 import PackageDetail from "./pages/PackageDetail";
 import ComparePage from "./pages/ComparePage";
+import Saved from "./pages/Saved";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/search" element={<SearchResults />} />
           <Route path="/package/:name" element={<PackageDetail />} />
           <Route path="/compare" element={<ComparePage />} />
+          <Route path="/saved" element={<Saved />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

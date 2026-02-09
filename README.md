@@ -1,73 +1,90 @@
-# Welcome to your Lovable project
+# npm-spark (NPMX)
 
-## Project info
+A fast, frontend-only NPM package explorer built with React + Vite. Search the NPM registry, open a package detail page (README, versions, dependencies, maintainers), visualize download trends, and compare two packages side-by-side.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Features
 
-## How can I edit this code?
+- **Search**: Query the NPM registry (supports NPM search operators like `downloads:>1000000`).
+- **Package detail page**:
+  - README rendering (GFM + syntax highlighting)
+  - Versions table
+  - Dependencies / peer dependencies browsing
+  - Maintainers list, license, publish date, install size
+  - GitHub/homepage quick links when available
+- **Downloads analytics**: Mini download trend chart (default range: last month) + weekly downloads.
+- **Compare**: Head-to-head comparison of two packages with metrics + a 30‑day downloads chart.
+- **Keyboard**: `/` focuses the header search, `Esc` blurs it.
 
-There are several ways of editing your application.
+## Tech stack
 
-**Use Lovable**
+- **App**: React 18, TypeScript, Vite (SWC)
+- **Routing**: React Router
+- **Data**: TanStack Query (React Query)
+- **UI**: Tailwind CSS + shadcn/ui (Radix primitives)
+- **Charts**: Recharts
+- **Testing**: Vitest + Testing Library
+- **Markdown**: `react-markdown` + `remark-gfm` + Prism syntax highlighting
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Getting started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+- Node.js (Vite 5 requires a modern Node version; Node 18+ is recommended)
+- npm
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Install & run
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Then open the dev server (configured to run on port **8080**).
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Routes
 
-**Use GitHub Codespaces**
+- **`/`**: Landing page + trending section + search
+- **`/search?q=<query>`**: Search results with infinite scrolling
+- **`/package/:name`**: Package detail page
+- **`/compare?pkg1=<name>&pkg2=<name>`**: Compare two packages
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Data sources
 
-## What technologies are used for this project?
+This project uses the public npm APIs directly from the browser:
 
-This project is built with:
+- **Registry search & package metadata**: `https://registry.npmjs.org`
+- **Download stats**: `https://api.npmjs.org/downloads`
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+No API keys are required.
 
-## How can I deploy this project?
+## Project structure
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+```text
+src/
+  components/          Reusable UI (Header, SearchBox, charts, cards, etc.)
+  components/ui/       shadcn/ui components
+  hooks/               React Query hooks (search/details/downloads)
+  lib/
+    npm-api.ts         npm registry + downloads API client + formatters
+  pages/               Route-level pages (Index, SearchResults, PackageDetail, ComparePage)
+  types/               TypeScript types for npm responses
+  test/                Vitest setup + example tests
+```
 
-## Can I connect a custom domain to my Lovable project?
+## Scripts
 
-Yes, you can!
+```bash
+npm run dev         # start Vite dev server
+npm run build       # production build
+npm run build:dev   # build using development mode
+npm run preview     # preview production build locally
+npm run lint        # run ESLint
+npm run test        # run tests once (Vitest)
+npm run test:watch  # watch mode (Vitest)
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Deployment
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+This is a static SPA (Vite build output). You can deploy the `dist/` folder to any static host (Netlify, Vercel static, Cloudflare Pages, GitHub Pages, etc.).
+
+If you deploy under a sub-path or use GitHub Pages, make sure your host is configured to rewrite unknown routes to `index.html` (client-side routing).

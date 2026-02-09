@@ -1,4 +1,5 @@
 import { NpmSearchResponse, NpmPackageDetails, NpmDownloads, NpmDownloadsRange } from '@/types/npm';
+import { fetchJson } from '@/lib/http';
 
 const REGISTRY_URL = 'https://registry.npmjs.org';
 const DOWNLOADS_API = 'https://api.npmjs.org/downloads';
@@ -9,41 +10,46 @@ export async function searchPackages(
   from: number = 0
 ): Promise<NpmSearchResponse> {
   const url = `${REGISTRY_URL}/-/v1/search?text=${encodeURIComponent(query)}&size=${size}&from=${from}`;
-  const response = await fetch(url);
-  
-  if (!response.ok) {
-    throw new Error(`Search failed: ${response.statusText}`);
-  }
-  
-  return response.json();
+  return fetchJson<NpmSearchResponse>(url, {
+    cacheKey: `npm:search:${query}:${size}:${from}`,
+    cacheTtlMs: 1000 * 60 * 2,
+    retries: 2,
+    retryDelayMs: 250,
+  });
 }
 
 export async function getPackageDetails(name: string): Promise<NpmPackageDetails> {
   const encodedName = encodeURIComponent(name).replace('%40', '@');
   const url = `${REGISTRY_URL}/${encodedName}`;
-  const response = await fetch(url);
-  
-  if (!response.ok) {
-    if (response.status === 404) {
+  try {
+    return await fetchJson<NpmPackageDetails>(url, {
+      cacheKey: `npm:pkg:${encodedName}`,
+      cacheTtlMs: 1000 * 60 * 10,
+      retries: 2,
+      retryDelayMs: 300,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : '';
+    if (msg.includes('404')) {
       throw new Error(`Package "${name}" not found`);
     }
-    throw new Error(`Failed to fetch package: ${response.statusText}`);
+    throw e instanceof Error ? e : new Error('Failed to fetch package');
   }
-  
-  return response.json();
 }
 
 export async function getWeeklyDownloads(name: string): Promise<NpmDownloads> {
   const encodedName = encodeURIComponent(name).replace('%40', '@');
   const url = `${DOWNLOADS_API}/point/last-week/${encodedName}`;
-  const response = await fetch(url);
-  
-  if (!response.ok) {
-    // Return 0 downloads if API fails
+  try {
+    return await fetchJson<NpmDownloads>(url, {
+      cacheKey: `npm:dl-week:${encodedName}`,
+      cacheTtlMs: 1000 * 60 * 10,
+      retries: 1,
+      retryDelayMs: 250,
+    });
+  } catch {
     return { downloads: 0, start: '', end: '', package: name };
   }
-  
-  return response.json();
 }
 
 export async function getDownloadsRange(
@@ -52,13 +58,16 @@ export async function getDownloadsRange(
 ): Promise<NpmDownloadsRange> {
   const encodedName = encodeURIComponent(name).replace('%40', '@');
   const url = `${DOWNLOADS_API}/range/${period}/${encodedName}`;
-  const response = await fetch(url);
-  
-  if (!response.ok) {
+  try {
+    return await fetchJson<NpmDownloadsRange>(url, {
+      cacheKey: `npm:dl-range:${period}:${encodedName}`,
+      cacheTtlMs: 1000 * 60 * 10,
+      retries: 1,
+      retryDelayMs: 250,
+    });
+  } catch {
     return { downloads: [], start: '', end: '', package: name };
   }
-  
-  return response.json();
 }
 
 export function formatDownloads(downloads: number): string {

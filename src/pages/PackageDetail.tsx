@@ -8,6 +8,7 @@ import { usePackageDetails, useWeeklyDownloads } from '@/hooks/usePackages';
 import { formatDownloads, formatDate, formatBytes, extractGitHubInfo, getGitHubUrl } from '@/lib/npm-api';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { useSaved } from '@/hooks/useSaved';
 import {
   ArrowLeft,
   ExternalLink,
@@ -20,6 +21,9 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronRight,
+  Star,
+  Eye,
+  Share2,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -30,6 +34,7 @@ export default function PackageDetail() {
   const { data: pkg, isLoading, error } = usePackageDetails(decodedName);
   const { data: downloads } = useWeeklyDownloads(decodedName);
   const [showAllVersions, setShowAllVersions] = useState(false);
+  const saved = useSaved();
 
   if (isLoading) {
     return (
@@ -71,12 +76,14 @@ export default function PackageDetail() {
   const depsCount = Object.keys(latestInfo?.dependencies || {}).length;
   const devDepsCount = Object.keys(latestInfo?.devDependencies || {}).length;
   const peerDepsCount = Object.keys(latestInfo?.peerDependencies || {}).length;
+  const fav = saved.isSaved('favorites', pkg.name);
+  const watch = saved.isSaved('watchlist', pkg.name);
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container py-8">
+      <main className="container py-8" id="main-content" tabIndex={-1}>
         <div className="mb-6">
           <Link to="/">
             <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
@@ -100,6 +107,37 @@ export default function PackageDetail() {
                   {pkg.description && (
                     <p className="text-muted-foreground mt-2 text-lg">{pkg.description}</p>
                   )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => saved.toggleSaved('favorites', pkg.name)}
+                  >
+                    <Star className={fav ? "h-4 w-4 text-primary" : "h-4 w-4"} />
+                    {fav ? "Favorited" : "Favorite"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => saved.toggleSaved('watchlist', pkg.name)}
+                  >
+                    <Eye className={watch ? "h-4 w-4 text-primary" : "h-4 w-4"} />
+                    {watch ? "Watching" : "Watch"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(window.location.href);
+                    }}
+                  >
+                    <Share2 className="h-4 w-4" />
+                    Copy link
+                  </Button>
                 </div>
               </div>
 

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, GitCompare, Menu } from 'lucide-react';
+import { Search, GitCompare, Menu, Bookmark } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { useSaved } from '@/hooks/useSaved';
 
 interface HeaderProps {
   initialQuery?: string;
@@ -18,6 +19,7 @@ export function Header({ initialQuery = '', showSearch = true }: HeaderProps) {
   const [query, setQuery] = useState(initialQuery);
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
+  const saved = useSaved();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -69,6 +71,17 @@ export function Header({ initialQuery = '', showSearch = true }: HeaderProps) {
         )}
 
         <nav className="hidden items-center gap-2 md:flex">
+          <Link to="/saved">
+            <Button variant="ghost" size="sm" className="font-mono text-sm gap-2">
+              <Bookmark className="h-4 w-4" />
+              saved
+              {(saved.favorites.length + saved.watchlist.length) > 0 && (
+                <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
+                  {saved.favorites.length + saved.watchlist.length}
+                </span>
+              )}
+            </Button>
+          </Link>
           <Link to="/compare">
             <Button variant="ghost" size="sm" className="font-mono text-sm gap-2">
               <GitCompare className="h-4 w-4" />
@@ -100,6 +113,17 @@ export function Header({ initialQuery = '', showSearch = true }: HeaderProps) {
                   />
                 </div>
               </form>
+              <Link to="/saved">
+                <Button variant="ghost" className="w-full justify-start gap-2 font-mono">
+                  <Bookmark className="h-4 w-4" />
+                  saved
+                  {(saved.favorites.length + saved.watchlist.length) > 0 && (
+                    <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
+                      {saved.favorites.length + saved.watchlist.length}
+                    </span>
+                  )}
+                </Button>
+              </Link>
               <Link to="/compare">
                 <Button variant="ghost" className="w-full justify-start gap-2 font-mono">
                   <GitCompare className="h-4 w-4" />

@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { formatDownloads, formatRelativeDate } from '@/lib/npm-api';
 import { NpmSearchResult } from '@/types/npm';
-import { Package, Calendar, User } from 'lucide-react';
+import { Package, Calendar, User, Star, Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useSaved } from '@/hooks/useSaved';
 
 interface PackageCardProps {
   result: NpmSearchResult;
@@ -10,12 +12,43 @@ interface PackageCardProps {
 
 export function PackageCard({ result, downloads }: PackageCardProps) {
   const { package: pkg } = result;
+  const saved = useSaved();
+  const fav = saved.isSaved('favorites', pkg.name);
+  const watch = saved.isSaved('watchlist', pkg.name);
 
   return (
     <Link
       to={`/package/${encodeURIComponent(pkg.name)}`}
-      className="glass-card-hover block p-5 animate-fade-in"
+      className="glass-card-hover block p-5 animate-fade-in relative"
     >
+      <div className="absolute right-3 top-3 flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className={fav ? "h-8 w-8 text-primary" : "h-8 w-8 text-muted-foreground"}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            saved.toggleSaved('favorites', pkg.name);
+          }}
+          aria-label={fav ? "Remove from favorites" : "Add to favorites"}
+        >
+          <Star className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className={watch ? "h-8 w-8 text-primary" : "h-8 w-8 text-muted-foreground"}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            saved.toggleSaved('watchlist', pkg.name);
+          }}
+          aria-label={watch ? "Remove from watchlist" : "Add to watchlist"}
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
+      </div>
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
