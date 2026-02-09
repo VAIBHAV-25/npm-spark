@@ -42,6 +42,12 @@ import { PackageHealthCard } from '@/components/PackageHealthCard';
 import { PackageTrendPredictor } from '@/components/PackageTrendPredictor';
 import { FrequentlyPairedPackages } from '@/components/FrequentlyPairedPackages';
 import { VersionUpdateAdvisor } from '@/components/VersionUpdateAdvisor';
+import { SecurityScanner } from '@/components/SecurityScanner';
+import { LicenseChecker } from '@/components/LicenseChecker';
+import { TypeScriptScore } from '@/components/TypeScriptScore';
+import { DependencyGraph } from '@/components/DependencyGraph';
+import { VersionDiff } from '@/components/VersionDiff';
+import { AddToCollection } from '@/components/AddToCollection';
 
 export default function PackageDetail() {
   const { name } = useParams<{ name: string }>();
@@ -232,6 +238,7 @@ export default function PackageDetail() {
                     <Share2 className="h-4 w-4" />
                     Copy link
                   </Button>
+                  <AddToCollection packageName={pkg.name} />
                 </div>
               </div>
 
@@ -491,12 +498,30 @@ export default function PackageDetail() {
                 </div>
               </TabsContent>
             </Tabs>
+
+            {/* Additional Package Information */}
+            <div className="grid grid-cols-1 gap-6 mt-6">
+              {/* Version Comparison */}
+              <VersionDiff packageName={pkg.name} versions={versions.slice(0, 20)} />
+
+              {/* Dependency Graph */}
+              <DependencyGraph packageName={pkg.name} version={latestVersion} maxDepth={2} />
+            </div>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-4 animate-fade-in-up animation-delay-400">
             {/* Package Health */}
             <PackageHealthCard pkg={pkg} score={score} />
+
+            {/* Security Scanner */}
+            <SecurityScanner packageName={pkg.name} version={latestVersion} />
+
+            {/* License Checker */}
+            <LicenseChecker license={latestInfo?.license} packageName={pkg.name} />
+
+            {/* TypeScript Support */}
+            <TypeScriptScore packageName={pkg.name} version={latestVersion} />
 
             {/* Version Update Advisor */}
             <VersionUpdateAdvisor pkg={pkg} currentVersion={latestVersion} />

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, GitCompare, Menu, Bookmark } from 'lucide-react';
+import { Search, GitCompare, Menu, Bookmark, FolderOpen, FileJson } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -118,6 +118,18 @@ export function Header({ initialQuery = '', showSearch = true }: HeaderProps) {
         )}
 
         <nav className="hidden items-center gap-2 md:flex">
+          <Link to="/analyzer">
+            <Button variant="ghost" size="sm" className="font-mono text-sm gap-2">
+              <FileJson className="h-4 w-4" />
+              analyzer
+            </Button>
+          </Link>
+          <Link to="/collections">
+            <Button variant="ghost" size="sm" className="font-mono text-sm gap-2">
+              <FolderOpen className="h-4 w-4" />
+              collections
+            </Button>
+          </Link>
           <Link to="/saved">
             <Button variant="ghost" size="sm" className="font-mono text-sm gap-2">
               <Bookmark className="h-4 w-4" />
@@ -196,6 +208,18 @@ export function Header({ initialQuery = '', showSearch = true }: HeaderProps) {
                   />
                 </div>
               </form>
+              <Link to="/analyzer">
+                <Button variant="ghost" className="w-full justify-start gap-2 font-mono">
+                  <FileJson className="h-4 w-4" />
+                  analyzer
+                </Button>
+              </Link>
+              <Link to="/collections">
+                <Button variant="ghost" className="w-full justify-start gap-2 font-mono">
+                  <FolderOpen className="h-4 w-4" />
+                  collections
+                </Button>
+              </Link>
               <Link to="/saved">
                 <Button variant="ghost" className="w-full justify-start gap-2 font-mono">
                   <Bookmark className="h-4 w-4" />
