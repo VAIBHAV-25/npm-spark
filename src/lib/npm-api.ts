@@ -1,0 +1,147 @@
+import { NpmSearchResponse, NpmPackageDetails, NpmDownloads, NpmDownloadsRange } from '@/types/npm';
+
+const REGISTRY_URL = 'https://registry.npmjs.org';
+const DOWNLOADS_API = 'https://api.npmjs.org/downloads';
+
+export async function searchPackages(
+  query: string,
+  size: number = 20,
+  from: number = 0
+): Promise<NpmSearchResponse> {
+  const url = `${REGISTRY_URL}/-/v1/search?text=${encodeURIComponent(query)}&size=${size}&from=${from}`;
+  const response = await fetch(url);
+  
+  if (!response.ok) {
+    throw new Error(`Search failed: ${response.statusText}`);
+  }
+  
+  return response.json();
+}
+
+export async function getPackageDetails(name: string): Promise<NpmPackageDetails> {
+  const encodedName = encodeURIComponent(name).replace('%40', '@');
+  const url = `${REGISTRY_URL}/${encodedName}`;
+  const response = await fetch(url);
+  
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error(`Package "${name}" not found`);
+    }
+    throw new Error(`Failed to fetch package: ${response.statusText}`);
+  }
+  
+  return response.json();
+}
+
+export async function getWeeklyDownloads(name: string): Promise<NpmDownloads> {
+  const encodedName = encodeURIComponent(name).replace('%40', '@');
+  const url = `${DOWNLOADS_API}/point/last-week/${encodedName}`;
+  const response = await fetch(url);
+  
+  if (!response.ok) {
+    // Return 0 downloads if API fails
+    return { downloads: 0, start: '', end: '', package: name };
+  }
+  
+  return response.json();
+}
+
+export async function getDownloadsRange(
+  name: string,
+  period: 'last-month' | 'last-week' | 'last-year' = 'last-month'
+): Promise<NpmDownloadsRange> {
+  const encodedName = encodeURIComponent(name).replace('%40', '@');
+  const url = `${DOWNLOADS_API}/range/${period}/${encodedName}`;
+  const response = await fetch(url);
+  
+  if (!response.ok) {
+    return { downloads: [], start: '', end: '', package: name };
+  }
+  
+  return response.json();
+}
+
+export function formatDownloads(downloads: number): string {
+  if (downloads >= 1_000_000_000) {
+    return `${(downloads / 1_000_000_000).toFixed(1)}B`;
+  }
+  if (downloads >= 1_000_000) {
+    return `${(downloads / 1_000_000).toFixed(1)}M`;
+  }
+  if (downloads >= 1_000) {
+    return `${(downloads / 1_000).toFixed(1)}K`;
+  }
+  return downloads.toString();
+}
+
+export function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+export function formatRelativeDate(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return 'today';
+  if (diffDays === 1) return 'yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+  return `${Math.floor(diffDays / 365)} years ago`;
+}
+
+export function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
+export function extractGitHubInfo(repoUrl?: string): { owner: string; repo: string } | null {
+  if (!repoUrl) return null;
+  
+  const patterns = [
+    /github\.com[/:]([\w-]+)\/([\w-]+)/,
+    /git\+https:\/\/github\.com\/([\w-]+)\/([\w-]+)/,
+    /git:\/\/github\.com\/([\w-]+)\/([\w-]+)/,
+  ];
+  
+  for (const pattern of patterns) {
+    const match = repoUrl.match(pattern);
+    if (match) {
+      return { owner: match[1], repo: match[2].replace(/\.git$/, '') };
+    }
+  }
+  
+  return null;
+}
+
+export function getGitHubUrl(repoInfo: { owner: string; repo: string }): string {
+  return `https://github.com/${repoInfo.owner}/${repoInfo.repo}`;
+}
+
+export const popularPackages = [
+  'react',
+  'vue',
+  'angular',
+  'next',
+  'express',
+  'typescript',
+  'lodash',
+  'axios',
+  'tailwindcss',
+  'vite',
+  'webpack',
+  'eslint',
+  'jest',
+  'moment',
+  'date-fns',
+];
