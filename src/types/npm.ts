@@ -112,6 +112,10 @@ export interface NpmVersionInfo {
   main?: string;
   module?: string;
   types?: string;
+  typings?: string;
+  type?: "module" | "commonjs" | string;
+  exports?: unknown;
+  sideEffects?: boolean | string[];
   scripts?: Record<string, string>;
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;

@@ -5,6 +5,7 @@ import {
   getWeeklyDownloads,
   getDownloadsRange,
 } from '@/lib/npm-api';
+import { NpmSearchResult } from '@/types/npm';
 
 export function usePackageSearch(query: string, enabled: boolean = true) {
   return useInfiniteQuery({
@@ -73,5 +74,18 @@ export function useMultipleDownloads(names: string[]) {
     },
     enabled: names.length > 0,
     staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function usePackageSearchScore(name: string, enabled: boolean = true) {
+  return useQuery({
+    queryKey: ['packageSearchScore', name],
+    queryFn: async () => {
+      const res = await searchPackages(name, 20, 0);
+      const exact = res.objects.find((o) => o.package.name === name);
+      return (exact || null) as NpmSearchResult | null;
+    },
+    enabled: enabled && name.length > 0,
+    staleTime: 1000 * 60 * 10,
   });
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Header } from '@/components/Header';
-import { usePackageDetails, useWeeklyDownloads, useDownloadsRange } from '@/hooks/usePackages';
+import { usePackageDetails, useWeeklyDownloads, useDownloadsRange, usePackageSearchScore } from '@/hooks/usePackages';
 import { formatDownloads, formatDate, formatBytes, extractGitHubInfo, getGitHubUrl } from '@/lib/npm-api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,8 @@ export default function ComparePage() {
 
   const { data: pkg1Range } = useDownloadsRange(pkg1Name, 'last-month', !!pkg1Name);
   const { data: pkg2Range } = useDownloadsRange(pkg2Name, 'last-month', !!pkg2Name);
+  const { data: pkg1Score } = usePackageSearchScore(pkg1Name, !!pkg1Name);
+  const { data: pkg2Score } = usePackageSearchScore(pkg2Name, !!pkg2Name);
 
   const handleCompare = () => {
     if (pkg1Input.trim() && pkg2Input.trim()) {
@@ -51,12 +53,71 @@ export default function ComparePage() {
   const isLoading = pkg1Loading || pkg2Loading;
   const hasData = pkg1Data && pkg2Data;
 
+  const sumDownloads = (range?: { downloads?: Array<{ downloads: number }> }) =>
+    (range?.downloads || []).reduce((sum, d) => sum + d.downloads, 0);
+
+  const trendPercent = (range?: { downloads?: Array<{ downloads: number }> }) => {
+    const ds = range?.downloads || [];
+    if (ds.length < 14) return null;
+    const last7 = ds.slice(-7).reduce((s, d) => s + d.downloads, 0);
+    const prev7 = ds.slice(-14, -7).reduce((s, d) => s + d.downloads, 0);
+    if (prev7 === 0) return null;
+    return (last7 - prev7) / prev7;
+  };
+
+  const countRecentReleases = (time: Record<string, string>, days: number) => {
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+    return Object.entries(time).filter(([k, v]) => k !== "modified" && k !== "created" && new Date(v).getTime() >= cutoff)
+      .length;
+  };
+
   // Prepare chart data
   const chartData = pkg1Range?.downloads?.map((d, i) => ({
     date: new Date(d.day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     [pkg1Name]: d.downloads,
     [pkg2Name]: pkg2Range?.downloads?.[i]?.downloads || 0,
   })) || [];
+
+  const latest1 = hasData ? pkg1Data['dist-tags'].latest : '';
+  const latest2 = hasData ? pkg2Data['dist-tags'].latest : '';
+  const latestInfo1 = hasData ? pkg1Data.versions[latest1] : undefined;
+  const latestInfo2 = hasData ? pkg2Data.versions[latest2] : undefined;
+
+  const monthTotal1 = sumDownloads(pkg1Range);
+  const monthTotal2 = sumDownloads(pkg2Range);
+  const monthAvg1 = pkg1Range?.downloads?.length ? Math.round(monthTotal1 / pkg1Range.downloads.length) : null;
+  const monthAvg2 = pkg2Range?.downloads?.length ? Math.round(monthTotal2 / pkg2Range.downloads.length) : null;
+  const t1 = trendPercent(pkg1Range);
+  const t2 = trendPercent(pkg2Range);
+
+  const deps1 = Object.keys(latestInfo1?.dependencies || {}).length;
+  const deps2 = Object.keys(latestInfo2?.dependencies || {}).length;
+  const devDeps1 = Object.keys(latestInfo1?.devDependencies || {}).length;
+  const devDeps2 = Object.keys(latestInfo2?.devDependencies || {}).length;
+  const peerDeps1 = Object.keys(latestInfo1?.peerDependencies || {}).length;
+  const peerDeps2 = Object.keys(latestInfo2?.peerDependencies || {}).length;
+
+  const unpack1 = latestInfo1?.dist?.unpackedSize ?? null;
+  const unpack2 = latestInfo2?.dist?.unpackedSize ?? null;
+  const fileCount1 = latestInfo1?.dist?.fileCount ?? null;
+  const fileCount2 = latestInfo2?.dist?.fileCount ?? null;
+
+  const versionsCount1 = hasData ? Object.keys(pkg1Data.versions).length : 0;
+  const versionsCount2 = hasData ? Object.keys(pkg2Data.versions).length : 0;
+  const tagsCount1 = hasData ? Object.keys(pkg1Data['dist-tags']).length : 0;
+  const tagsCount2 = hasData ? Object.keys(pkg2Data['dist-tags']).length : 0;
+
+  const rel30_1 = hasData ? countRecentReleases(pkg1Data.time, 30) : 0;
+  const rel30_2 = hasData ? countRecentReleases(pkg2Data.time, 30) : 0;
+  const rel365_1 = hasData ? countRecentReleases(pkg1Data.time, 365) : 0;
+  const rel365_2 = hasData ? countRecentReleases(pkg2Data.time, 365) : 0;
+
+  const hasTypes1 = Boolean(latestInfo1?.types || (latestInfo1 as any)?.typings);
+  const hasTypes2 = Boolean(latestInfo2?.types || (latestInfo2 as any)?.typings);
+  const hasEsm1 = Boolean(latestInfo1?.module || (latestInfo1 as any)?.type === "module");
+  const hasEsm2 = Boolean(latestInfo2?.module || (latestInfo2 as any)?.type === "module");
+  const nodeEngine1 = latestInfo1?.engines?.node || 'N/A';
+  const nodeEngine2 = latestInfo2?.engines?.node || 'N/A';
 
   const comparisonRows = hasData ? [
     {
@@ -66,9 +127,36 @@ export default function ComparePage() {
       winner: (pkg1Downloads?.downloads || 0) > (pkg2Downloads?.downloads || 0) ? 1 : 2,
     },
     {
+      label: 'Downloads (Last 30 Days)',
+      pkg1: monthTotal1 ? formatDownloads(monthTotal1) : 'N/A',
+      pkg2: monthTotal2 ? formatDownloads(monthTotal2) : 'N/A',
+      winner: monthTotal1 > monthTotal2 ? 1 : 2,
+    },
+    {
+      label: 'Avg Downloads / Day (30d)',
+      pkg1: monthAvg1 !== null ? formatDownloads(monthAvg1) : 'N/A',
+      pkg2: monthAvg2 !== null ? formatDownloads(monthAvg2) : 'N/A',
+      winner: (monthAvg1 ?? 0) > (monthAvg2 ?? 0) ? 1 : 2,
+    },
+    {
+      label: 'Trend (Last 7d vs Prev 7d)',
+      pkg1: t1 === null ? 'N/A' : `${t1 >= 0 ? '+' : ''}${Math.round(t1 * 100)}%`,
+      pkg2: t2 === null ? 'N/A' : `${t2 >= 0 ? '+' : ''}${Math.round(t2 * 100)}%`,
+    },
+    {
       label: 'Latest Version',
-      pkg1: pkg1Data['dist-tags'].latest,
-      pkg2: pkg2Data['dist-tags'].latest,
+      pkg1: latest1,
+      pkg2: latest2,
+    },
+    {
+      label: 'Total Versions',
+      pkg1: versionsCount1.toLocaleString(),
+      pkg2: versionsCount2.toLocaleString(),
+    },
+    {
+      label: 'Dist Tags',
+      pkg1: tagsCount1.toString(),
+      pkg2: tagsCount2.toString(),
     },
     {
       label: 'License',
@@ -77,24 +165,85 @@ export default function ComparePage() {
     },
     {
       label: 'Dependencies',
-      pkg1: Object.keys(pkg1Data.versions[pkg1Data['dist-tags'].latest]?.dependencies || {}).length.toString(),
-      pkg2: Object.keys(pkg2Data.versions[pkg2Data['dist-tags'].latest]?.dependencies || {}).length.toString(),
-      winner: Object.keys(pkg1Data.versions[pkg1Data['dist-tags'].latest]?.dependencies || {}).length < 
-              Object.keys(pkg2Data.versions[pkg2Data['dist-tags'].latest]?.dependencies || {}).length ? 1 : 2,
+      pkg1: deps1.toString(),
+      pkg2: deps2.toString(),
+      winner: deps1 < deps2 ? 1 : 2,
+    },
+    {
+      label: 'Dev Dependencies',
+      pkg1: devDeps1.toString(),
+      pkg2: devDeps2.toString(),
+      winner: devDeps1 < devDeps2 ? 1 : 2,
+    },
+    {
+      label: 'Peer Dependencies',
+      pkg1: peerDeps1.toString(),
+      pkg2: peerDeps2.toString(),
+      winner: peerDeps1 < peerDeps2 ? 1 : 2,
     },
     {
       label: 'Install Size',
-      pkg1: pkg1Data.versions[pkg1Data['dist-tags'].latest]?.dist?.unpackedSize 
-        ? formatBytes(pkg1Data.versions[pkg1Data['dist-tags'].latest].dist.unpackedSize)
-        : 'N/A',
-      pkg2: pkg2Data.versions[pkg2Data['dist-tags'].latest]?.dist?.unpackedSize 
-        ? formatBytes(pkg2Data.versions[pkg2Data['dist-tags'].latest].dist.unpackedSize)
-        : 'N/A',
+      pkg1: unpack1 ? formatBytes(unpack1) : 'N/A',
+      pkg2: unpack2 ? formatBytes(unpack2) : 'N/A',
+      winner: unpack1 !== null && unpack2 !== null ? (unpack1 < unpack2 ? 1 : 2) : undefined,
+    },
+    {
+      label: 'File Count',
+      pkg1: fileCount1 !== null ? fileCount1.toString() : 'N/A',
+      pkg2: fileCount2 !== null ? fileCount2.toString() : 'N/A',
     },
     {
       label: 'Last Publish',
       pkg1: formatDate(pkg1Data.time[pkg1Data['dist-tags'].latest]),
       pkg2: formatDate(pkg2Data.time[pkg2Data['dist-tags'].latest]),
+    },
+    {
+      label: 'Releases (Last 30 Days)',
+      pkg1: rel30_1.toString(),
+      pkg2: rel30_2.toString(),
+    },
+    {
+      label: 'Releases (Last 12 Months)',
+      pkg1: rel365_1.toString(),
+      pkg2: rel365_2.toString(),
+    },
+    {
+      label: 'TypeScript Types',
+      pkg1: hasTypes1 ? 'Yes' : 'No',
+      pkg2: hasTypes2 ? 'Yes' : 'No',
+      winner: hasTypes1 !== hasTypes2 ? (hasTypes1 ? 1 : 2) : undefined,
+    },
+    {
+      label: 'ESM Hint',
+      pkg1: hasEsm1 ? 'Yes' : 'No',
+      pkg2: hasEsm2 ? 'Yes' : 'No',
+      winner: hasEsm1 !== hasEsm2 ? (hasEsm1 ? 1 : 2) : undefined,
+    },
+    {
+      label: 'Node Engine',
+      pkg1: nodeEngine1,
+      pkg2: nodeEngine2,
+    },
+    {
+      label: 'NPM Score (Final)',
+      pkg1: pkg1Score ? (pkg1Score.score.final * 100).toFixed(0) : 'N/A',
+      pkg2: pkg2Score ? (pkg2Score.score.final * 100).toFixed(0) : 'N/A',
+      winner: (pkg1Score?.score.final ?? 0) > (pkg2Score?.score.final ?? 0) ? 1 : 2,
+    },
+    {
+      label: 'NPM Score (Quality)',
+      pkg1: pkg1Score ? (pkg1Score.score.detail.quality * 100).toFixed(0) : 'N/A',
+      pkg2: pkg2Score ? (pkg2Score.score.detail.quality * 100).toFixed(0) : 'N/A',
+    },
+    {
+      label: 'NPM Score (Popularity)',
+      pkg1: pkg1Score ? (pkg1Score.score.detail.popularity * 100).toFixed(0) : 'N/A',
+      pkg2: pkg2Score ? (pkg2Score.score.detail.popularity * 100).toFixed(0) : 'N/A',
+    },
+    {
+      label: 'NPM Score (Maintenance)',
+      pkg1: pkg1Score ? (pkg1Score.score.detail.maintenance * 100).toFixed(0) : 'N/A',
+      pkg2: pkg2Score ? (pkg2Score.score.detail.maintenance * 100).toFixed(0) : 'N/A',
     },
     {
       label: 'Maintainers',
@@ -264,7 +413,7 @@ export default function ComparePage() {
         {hasData && !isLoading && (
           <div className="space-y-8 animate-fade-in">
             {/* Package Headers */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[pkg1Data, pkg2Data].map((pkg, idx) => {
                 const gitHub = extractGitHubInfo(pkg.repository?.url);
                 return (
@@ -352,8 +501,8 @@ export default function ComparePage() {
             )}
 
             {/* Comparison Table */}
-            <div className="glass-card overflow-hidden">
-              <table className="w-full">
+            <div className="glass-card overflow-x-auto">
+              <table className="w-full min-w-[720px]">
                 <thead>
                   <tr className="border-b border-border bg-muted/50">
                     <th className="text-left px-6 py-4 text-xs uppercase tracking-wider text-muted-foreground">
@@ -390,7 +539,7 @@ export default function ComparePage() {
             </div>
 
             {/* Keywords Comparison */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[pkg1Data, pkg2Data].map((pkg) => (
                 <div key={pkg.name} className="glass-card p-6">
                   <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-3">

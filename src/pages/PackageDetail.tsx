@@ -4,7 +4,7 @@ import { InstallCommand } from '@/components/InstallCommand';
 import { DownloadsChart } from '@/components/DownloadsChart';
 import { ReadmeViewer } from '@/components/ReadmeViewer';
 import { PackageDetailSkeleton } from '@/components/Skeletons';
-import { usePackageDetails, useWeeklyDownloads } from '@/hooks/usePackages';
+import { usePackageDetails, useWeeklyDownloads, usePackageSearchScore } from '@/hooks/usePackages';
 import { formatDownloads, formatDate, formatBytes, extractGitHubInfo, getGitHubUrl } from '@/lib/npm-api';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,13 @@ import {
   Star,
   Eye,
   Share2,
+  Hash,
+  Download,
+  Tag,
+  Cpu,
+  FileArchive,
+  ShieldCheck,
+  FileJson,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -33,6 +40,7 @@ export default function PackageDetail() {
   
   const { data: pkg, isLoading, error } = usePackageDetails(decodedName);
   const { data: downloads } = useWeeklyDownloads(decodedName);
+  const { data: score } = usePackageSearchScore(decodedName, !!decodedName);
   const [showAllVersions, setShowAllVersions] = useState(false);
   const saved = useSaved();
 
@@ -78,6 +86,14 @@ export default function PackageDetail() {
   const peerDepsCount = Object.keys(latestInfo?.peerDependencies || {}).length;
   const fav = saved.isSaved('favorites', pkg.name);
   const watch = saved.isSaved('watchlist', pkg.name);
+  const tagsCount = Object.keys(pkg['dist-tags'] || {}).length;
+  const fileCount = latestInfo?.dist?.fileCount;
+  const hasTypes = Boolean(latestInfo?.types || latestInfo?.typings);
+  const hasEsm = Boolean(latestInfo?.module || latestInfo?.type === 'module');
+  const createdAt = pkg.time?.created;
+  const modifiedAt = pkg.time?.modified;
+  const nodeEngine = latestInfo?.engines?.node;
+  const npmUrl = `https://www.npmjs.com/package/${encodeURIComponent(pkg.name).replace('%40', '@')}`;
 
   return (
     <div className="min-h-screen bg-background">
@@ -167,14 +183,14 @@ export default function PackageDetail() {
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
                 <div className="stat-card">
                   <span className="stat-label">License</span>
                   <span className="stat-value font-mono">{pkg.license || 'N/A'}</span>
                 </div>
                 <div className="stat-card">
-                  <span className="stat-label">Dependencies</span>
-                  <span className="stat-value">{depsCount}</span>
+                  <span className="stat-label">Deps / Dev / Peer</span>
+                  <span className="stat-value">{depsCount} / {devDepsCount} / {peerDepsCount}</span>
                 </div>
                 <div className="stat-card">
                   <span className="stat-label">Install Size</span>
@@ -190,6 +206,27 @@ export default function PackageDetail() {
                     {pkg.time[latestVersion] ? formatDate(pkg.time[latestVersion]) : 'N/A'}
                   </span>
                 </div>
+                <div className="stat-card">
+                  <span className="stat-label">Weekly Downloads</span>
+                  <span className="stat-value text-primary">
+                    {downloads ? formatDownloads(downloads.downloads) : '—'}
+                  </span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-label">Versions / Tags</span>
+                  <span className="stat-value">{versions.length} / {tagsCount}</span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <a href={npmUrl} target="_blank" rel="noopener noreferrer" className="chip hover:bg-primary/20 hover:text-primary">
+                  Open on npm
+                </a>
+                {hasTypes && <span className="chip">TypeScript</span>}
+                {hasEsm && <span className="chip">ESM</span>}
+                {nodeEngine && <span className="chip">Node {nodeEngine}</span>}
+                {createdAt && <span className="chip">Created {formatDate(createdAt)}</span>}
+                {modifiedAt && <span className="chip">Updated {formatDate(modifiedAt)}</span>}
               </div>
             </div>
 
@@ -322,6 +359,28 @@ export default function PackageDetail() {
                     </div>
                   )}
 
+                  {devDepsCount > 0 && (
+                    <div className="glass-card">
+                      <div className="px-4 py-3 border-b border-border">
+                        <h4 className="text-sm font-medium text-foreground">
+                          Dev Dependencies ({devDepsCount})
+                        </h4>
+                      </div>
+                      <div className="p-4 flex flex-wrap gap-2">
+                        {Object.entries(latestInfo?.devDependencies || {}).map(([dep, version]) => (
+                          <Link
+                            key={dep}
+                            to={`/package/${encodeURIComponent(dep)}`}
+                            className="chip hover:bg-primary/20 hover:text-primary"
+                          >
+                            {dep}
+                            <span className="ml-1 text-muted-foreground">{version}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {peerDepsCount > 0 && (
                     <div className="glass-card">
                       <div className="px-4 py-3 border-b border-border">
@@ -344,7 +403,7 @@ export default function PackageDetail() {
                     </div>
                   )}
 
-                  {depsCount === 0 && peerDepsCount === 0 && (
+                  {depsCount === 0 && devDepsCount === 0 && peerDepsCount === 0 && (
                     <div className="glass-card p-8 text-center">
                       <p className="text-muted-foreground">No dependencies</p>
                     </div>
@@ -366,6 +425,110 @@ export default function PackageDetail() {
                 <span className="stat-value text-2xl text-primary">
                   {formatDownloads(downloads.downloads)}
                 </span>
+              </div>
+            )}
+
+            <div className="glass-card p-4 space-y-3">
+              <h4 className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <FileJson className="h-4 w-4" />
+                Package Info
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="stat-card">
+                  <span className="stat-label flex items-center gap-2">
+                    <Tag className="h-4 w-4" />
+                    Latest
+                  </span>
+                  <span className="stat-value font-mono">{latestVersion}</span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-label flex items-center gap-2">
+                    <Download className="h-4 w-4" />
+                    Tarball
+                  </span>
+                  <a
+                    href={latestInfo?.dist?.tarball}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary hover:underline break-all"
+                  >
+                    Download
+                  </a>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-label flex items-center gap-2">
+                    <Hash className="h-4 w-4" />
+                    shasum
+                  </span>
+                  <button
+                    className="text-left font-mono text-xs text-muted-foreground break-all hover:text-foreground"
+                    onClick={async () => {
+                      if (latestInfo?.dist?.shasum) await navigator.clipboard.writeText(latestInfo.dist.shasum);
+                    }}
+                  >
+                    {latestInfo?.dist?.shasum || 'N/A'}
+                  </button>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-label flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4" />
+                    integrity
+                  </span>
+                  <button
+                    className="text-left font-mono text-xs text-muted-foreground break-all hover:text-foreground"
+                    onClick={async () => {
+                      if (latestInfo?.dist?.integrity) await navigator.clipboard.writeText(latestInfo.dist.integrity);
+                    }}
+                  >
+                    {latestInfo?.dist?.integrity || 'N/A'}
+                  </button>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-label flex items-center gap-2">
+                    <FileArchive className="h-4 w-4" />
+                    Files
+                  </span>
+                  <span className="stat-value">{fileCount ?? 'N/A'}</span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-label flex items-center gap-2">
+                    <Cpu className="h-4 w-4" />
+                    Engines
+                  </span>
+                  <span className="stat-value text-sm font-mono">
+                    {nodeEngine || 'N/A'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {score && (
+              <div className="glass-card p-4 space-y-3">
+                <h4 className="text-xs uppercase tracking-wider text-muted-foreground">
+                  NPM Score
+                </h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="stat-card">
+                    <span className="stat-label">Final</span>
+                    <span className="stat-value text-primary">{(score.score.final * 100).toFixed(0)}</span>
+                  </div>
+                  <div className="stat-card">
+                    <span className="stat-label">Search score</span>
+                    <span className="stat-value">{score.searchScore.toFixed(2)}</span>
+                  </div>
+                  <div className="stat-card">
+                    <span className="stat-label">Quality</span>
+                    <span className="stat-value">{(score.score.detail.quality * 100).toFixed(0)}</span>
+                  </div>
+                  <div className="stat-card">
+                    <span className="stat-label">Popularity</span>
+                    <span className="stat-value">{(score.score.detail.popularity * 100).toFixed(0)}</span>
+                  </div>
+                  <div className="stat-card col-span-2">
+                    <span className="stat-label">Maintenance</span>
+                    <span className="stat-value">{(score.score.detail.maintenance * 100).toFixed(0)}</span>
+                  </div>
+                </div>
               </div>
             )}
 
