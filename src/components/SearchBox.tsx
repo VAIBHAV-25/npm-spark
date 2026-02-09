@@ -52,9 +52,9 @@ export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
               onChange={(e) => {
                 setQuery(e.target.value);
                 setActiveIndex(0);
-                setOpenSuggestions(true);
+                setOpenSuggestions(e.target.value.trim().length > 0);
               }}
-              onFocus={() => setOpenSuggestions(true)}
+              onFocus={() => setOpenSuggestions(query.trim().length > 0)}
               onBlur={() => window.setTimeout(() => setOpenSuggestions(false), 120)}
               onKeyDown={(e) => {
                 if (!openSuggestions || suggestions.items.length === 0) return;
