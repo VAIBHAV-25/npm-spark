@@ -104,7 +104,7 @@ const Index = () => {
               <span className="gradient-text animate-gradient">Smarter & Faster</span>
             </h1>
             
-            <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto animate-fade-in-up animation-delay-400">
+            <p className="text-lg text-muted-foreground mb-8 max-w-3xl mx-auto animate-fade-in-up animation-delay-400">
               Search, compare, and analyze over <span className="text-primary font-semibold">2+ million packages</span>. 
               Make data-driven decisions with AI-powered insights, security analysis, and intelligent recommendations.
             </p>
