@@ -13,6 +13,14 @@ import { addRecentSearch } from '@/lib/recent-searches';
 import { StarfieldEffect } from '@/components/StarfieldEffect';
 import { ComparisonConclusion } from '@/components/ComparisonConclusion';
 import { useBundleSize } from '@/hooks/usePackages';
+import {
+  NPMScoreRadar,
+  DownloadsPie,
+  BundleSizeChart,
+  DependencyChart,
+  ReleaseFrequencyChart,
+  WinnerCards,
+} from '@/components/ComparisonCharts';
 
 export default function ComparePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -564,6 +572,84 @@ export default function ComparePage() {
               </div>
             )}
 
+            {/* Winner Cards */}
+            {hasData && (
+              <WinnerCards
+                pkg1Name={pkg1Name}
+                pkg2Name={pkg2Name}
+                pkg1Bundle={pkg1Bundle}
+                pkg2Bundle={pkg2Bundle}
+                pkg1Downloads={pkg1Downloads?.downloads || null}
+                pkg2Downloads={pkg2Downloads?.downloads || null}
+                pkg1Score={pkg1Score}
+                pkg2Score={pkg2Score}
+                rel365_1={rel365_1}
+                rel365_2={rel365_2}
+              />
+            )}
+
+            {/* Visual Analytics Grid */}
+            {hasData && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                {/* NPM Score Radar Chart */}
+                {pkg1Score && pkg2Score && (
+                  <NPMScoreRadar
+                    pkg1Name={pkg1Name}
+                    pkg2Name={pkg2Name}
+                    pkg1Score={pkg1Score}
+                    pkg2Score={pkg2Score}
+                  />
+                )}
+
+                {/* Downloads Pie Chart */}
+                {pkg1Downloads && pkg2Downloads && (
+                  <DownloadsPie
+                    pkg1Name={pkg1Name}
+                    pkg2Name={pkg2Name}
+                    pkg1Downloads={pkg1Downloads.downloads}
+                    pkg2Downloads={pkg2Downloads.downloads}
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Bundle Size Comparison */}
+            {pkg1Bundle && pkg2Bundle && (
+              <div className="mb-8">
+                <BundleSizeChart
+                  pkg1Name={pkg1Name}
+                  pkg2Name={pkg2Name}
+                  pkg1Bundle={pkg1Bundle}
+                  pkg2Bundle={pkg2Bundle}
+                />
+              </div>
+            )}
+
+            {/* Dependency and Release Charts */}
+            {hasData && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                {/* Dependency Distribution */}
+                <DependencyChart
+                  pkg1Name={pkg1Name}
+                  pkg2Name={pkg2Name}
+                  deps1={deps1}
+                  deps2={deps2}
+                  devDeps1={devDeps1}
+                  devDeps2={devDeps2}
+                  peerDeps1={peerDeps1}
+                  peerDeps2={peerDeps2}
+                />
+
+                {/* Release Frequency */}
+                <ReleaseFrequencyChart
+                  pkg1Name={pkg1Name}
+                  pkg2Name={pkg2Name}
+                  pkg1Time={pkg1Data.time}
+                  pkg2Time={pkg2Data.time}
+                />
+              </div>
+            )}
+
             {/* Smart Recommendation */}
             <ComparisonConclusion
               pkg1={pkg1Data}
@@ -572,6 +658,10 @@ export default function ComparePage() {
               pkg2Downloads={pkg2Downloads}
               pkg1BundleGzip={pkg1Bundle?.gzip}
               pkg2BundleGzip={pkg2Bundle?.gzip}
+              pkg1Score={pkg1Score}
+              pkg2Score={pkg2Score}
+              pkg1Range={pkg1Range}
+              pkg2Range={pkg2Range}
             />
 
             {/* Comparison Table */}
