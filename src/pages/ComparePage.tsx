@@ -325,15 +325,15 @@ export default function ComparePage() {
       </div>
 
       <div className="relative z-10">
-        <Header />
-        
+      <Header />
+      
         <main className="container py-8" style={{ overflow: 'visible' }}>
           <div className="text-center mb-8 animate-fade-in-up">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Compare Packages</h1>
-            <p className="text-muted-foreground">
-              Compare two NPM packages side by side
-            </p>
-          </div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Compare Packages</h1>
+          <p className="text-muted-foreground">
+            Compare two NPM packages side by side
+          </p>
+        </div>
 
         {/* Input Form */}
         <div className="glass-card p-6 mb-8 relative z-20 animate-fade-in-up animation-delay-200" style={{ overflow: 'visible' }}>

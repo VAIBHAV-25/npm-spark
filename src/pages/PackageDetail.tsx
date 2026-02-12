@@ -32,6 +32,10 @@ import {
   FileArchive,
   ShieldCheck,
   FileJson,
+  GitCompare,
+  Network,
+  Code,
+  Sparkles,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { StarfieldEffect } from '@/components/StarfieldEffect';
@@ -48,6 +52,9 @@ import { TypeScriptScore } from '@/components/TypeScriptScore';
 import { DependencyGraph } from '@/components/DependencyGraph';
 import { VersionDiff } from '@/components/VersionDiff';
 import { AddToCollection } from '@/components/AddToCollection';
+import { AIPackageSummary } from '@/components/AIPackageSummary';
+import { AICodeSnippets } from '@/components/AICodeSnippets';
+import { AICommunitySentiment } from '@/components/AICommunitySentiment';
 
 export default function PackageDetail() {
   const { name } = useParams<{ name: string }>();
@@ -204,29 +211,29 @@ export default function PackageDetail() {
                     <p className="text-muted-foreground mt-2 text-lg">{pkg.description}</p>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-2"
+                    className="gap-1 sm:gap-2"
                     onClick={() => saved.toggleSaved('favorites', pkg.name)}
                   >
                     <Star className={fav ? "h-4 w-4 text-primary" : "h-4 w-4"} />
-                    {fav ? "Favorited" : "Favorite"}
+                    <span className="hidden sm:inline">{fav ? "Favorited" : "Favorite"}</span>
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-2"
+                    className="gap-1 sm:gap-2"
                     onClick={() => saved.toggleSaved('watchlist', pkg.name)}
                   >
                     <Eye className={watch ? "h-4 w-4 text-primary" : "h-4 w-4"} />
-                    {watch ? "Watching" : "Watch"}
+                    <span className="hidden sm:inline">{watch ? "Watching" : "Watch"}</span>
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-2"
+                    className="gap-1 sm:gap-2"
                     onClick={async () => {
                       await navigator.clipboard.writeText(window.location.href);
                       toast({
@@ -236,7 +243,7 @@ export default function PackageDetail() {
                     }}
                   >
                     <Share2 className="h-4 w-4" />
-                    Copy link
+                    <span className="hidden sm:inline">Copy link</span>
                   </Button>
                   <AddToCollection packageName={pkg.name} />
                 </div>
@@ -322,31 +329,68 @@ export default function PackageDetail() {
 
             {/* Tabs */}
             <Tabs defaultValue="readme" className="w-full animate-fade-in-up animation-delay-800">
-              <TabsList className="w-full justify-start border-b border-border bg-transparent h-auto p-0 gap-0">
+              <TabsList className="w-full justify-start border-b border-border bg-transparent h-auto p-0 gap-0 overflow-x-auto flex-nowrap">
                 <TabsTrigger
                   value="readme"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 py-2 whitespace-nowrap text-xs sm:text-sm"
                 >
-                  <FileCode className="h-4 w-4 mr-2" />
-                  README
+                  <FileCode className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">README</span>
+                  <span className="sm:hidden">README</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="versions"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 py-2 whitespace-nowrap text-xs sm:text-sm"
                 >
-                  <Package className="h-4 w-4 mr-2" />
-                  Versions ({versions.length})
+                  <Package className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Versions ({versions.length})</span>
+                  <span className="sm:hidden">Versions</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="dependencies"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 py-2 whitespace-nowrap text-xs sm:text-sm"
                 >
-                  <Scale className="h-4 w-4 mr-2" />
-                  Dependencies
+                  <Scale className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Dependencies</span>
+                  <span className="sm:hidden">Deps</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="version-migration"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 py-2 whitespace-nowrap text-xs sm:text-sm"
+                >
+                  <GitCompare className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Version Migration</span>
+                  <span className="sm:hidden">Migration</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="dependency-tree"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 py-2 whitespace-nowrap text-xs sm:text-sm"
+                >
+                  <Network className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Dependency Tree</span>
+                  <span className="sm:hidden">Tree</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="code-snippets"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 py-2 whitespace-nowrap text-xs sm:text-sm"
+                >
+                  <Code className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Code Snippets</span>
+                  <span className="sm:hidden">Code</span>
+                  <Sparkles className="h-2 w-2 sm:h-3 sm:w-3 ml-1 text-primary" />
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="readme" className="mt-6">
+              <TabsContent value="readme" className="mt-6 space-y-6">
+                {/* AI Package Summary - Auto-generated at top */}
+                <AIPackageSummary 
+                  packageName={pkg.name}
+                  description={pkg.description}
+                  downloads={downloads?.downloads}
+                  license={pkg.license}
+                />
+
+                {/* README Content */}
                 <div className="glass-card p-6">
                   {pkg.readme ? (
                     <ReadmeViewer content={pkg.readme} packageName={pkg.name} />
@@ -497,15 +541,28 @@ export default function PackageDetail() {
                   )}
                 </div>
               </TabsContent>
+
+              <TabsContent value="version-migration" className="mt-6">
+                <VersionDiff packageName={pkg.name} versions={versions.slice(0, 20)} />
+              </TabsContent>
+
+              <TabsContent value="dependency-tree" className="mt-6">
+                <DependencyGraph packageName={pkg.name} version={latestVersion} maxDepth={2} />
+              </TabsContent>
+
+              <TabsContent value="code-snippets" className="mt-6">
+                <AICodeSnippets 
+                  packageName={pkg.name}
+                  version={latestVersion}
+                />
+              </TabsContent>
             </Tabs>
 
-            {/* Additional Package Information */}
-            <div className="grid grid-cols-1 gap-6 mt-6">
-              {/* Version Comparison */}
-              <VersionDiff packageName={pkg.name} versions={versions.slice(0, 20)} />
+            {/* AI Features Section */}
+            <div className="mt-8 space-y-6">
 
-              {/* Dependency Graph */}
-              <DependencyGraph packageName={pkg.name} version={latestVersion} maxDepth={2} />
+              {/* AI Community Sentiment */}
+              <AICommunitySentiment packageName={pkg.name} />
             </div>
           </div>
 
@@ -515,7 +572,7 @@ export default function PackageDetail() {
             <PackageHealthCard pkg={pkg} score={score} />
 
             {/* Security Scanner */}
-            <SecurityScanner packageName={pkg.name} version={latestVersion} />
+            <SecurityScanner packageName={pkg.name} version={latestVersion} license={pkg.license} />
 
             {/* License Checker */}
             <LicenseChecker license={latestInfo?.license} packageName={pkg.name} />

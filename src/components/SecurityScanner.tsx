@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { AlertTriangle, CheckCircle, XCircle, Shield, ExternalLink, Info } from 'lucide-react';
+import { AlertTriangle, CheckCircle, XCircle, Shield, ExternalLink, Info, ChevronDown, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AISecurityInsights } from './AISecurityInsights';
 
 interface Vulnerability {
   id: string;
@@ -17,6 +19,7 @@ interface Vulnerability {
 interface SecurityScannerProps {
   packageName: string;
   version?: string;
+  license?: string;
 }
 
 async function fetchVulnerabilities(packageName: string): Promise<Vulnerability[]> {
@@ -91,7 +94,9 @@ const severityConfig = {
   },
 };
 
-export function SecurityScanner({ packageName, version }: SecurityScannerProps) {
+export function SecurityScanner({ packageName, version, license }: SecurityScannerProps) {
+  const [showAIInsights, setShowAIInsights] = useState(false);
+  
   const { data: vulnerabilities, isLoading } = useQuery({
     queryKey: ['vulnerabilities', packageName],
     queryFn: () => fetchVulnerabilities(packageName),
@@ -213,6 +218,34 @@ export function SecurityScanner({ packageName, version }: SecurityScannerProps) 
           </div>
         </div>
       )}
+
+      <div className="mt-4 pt-4 border-t border-border">
+        <button
+          onClick={() => setShowAIInsights(!showAIInsights)}
+          className="flex items-center justify-between w-full text-left hover:text-primary transition-colors group"
+        >
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm font-semibold">AI Security & Quality Insights</span>
+          </div>
+          <ChevronDown
+            className={cn(
+              'h-4 w-4 transition-transform text-muted-foreground group-hover:text-primary',
+              showAIInsights && 'transform rotate-180'
+            )}
+          />
+        </button>
+        
+        {showAIInsights && (
+          <div className="mt-4 animate-fade-in max-h-[600px] overflow-y-auto">
+            <AISecurityInsights 
+              packageName={packageName}
+              version={version || 'latest'}
+              license={license}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

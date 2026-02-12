@@ -33,9 +33,9 @@ export function AddToCollection({ packageName }: AddToCollectionProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-1 sm:gap-2">
           <FolderPlus className="h-4 w-4" />
-          Add to Collection
+          <span className="hidden sm:inline">Add to Collection</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">

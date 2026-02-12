@@ -1,12 +1,16 @@
+import { useState } from 'react';
 import { useSimilarPackages } from '@/hooks/usePackages';
 import { Link } from 'react-router-dom';
-import { Package, Loader2, Lightbulb } from 'lucide-react';
+import { Package, Loader2, Lightbulb, ChevronDown, Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { AIComparisonSuggestions } from './AIComparisonSuggestions';
 
 interface SimilarPackagesProps {
   packageName: string;
 }
 
 export function SimilarPackages({ packageName }: SimilarPackagesProps) {
+  const [showAIComparison, setShowAIComparison] = useState(false);
   const { data: similarPackages, isLoading } = useSimilarPackages(packageName);
 
   if (isLoading) {
@@ -40,6 +44,30 @@ export function SimilarPackages({ packageName }: SimilarPackagesProps) {
             <span className="font-mono truncate">{pkgName}</span>
           </Link>
         ))}
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-border">
+        <button
+          onClick={() => setShowAIComparison(!showAIComparison)}
+          className="flex items-center justify-between w-full text-left hover:text-primary transition-colors group"
+        >
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-xs font-semibold uppercase tracking-wider">AI Comparison Suggestions</span>
+          </div>
+          <ChevronDown
+            className={cn(
+              'h-4 w-4 transition-transform text-muted-foreground group-hover:text-primary',
+              showAIComparison && 'transform rotate-180'
+            )}
+          />
+        </button>
+        
+        {showAIComparison && (
+          <div className="mt-4 animate-fade-in max-h-[600px] overflow-y-auto">
+            <AIComparisonSuggestions packageName={packageName} />
+          </div>
+        )}
       </div>
     </div>
   );

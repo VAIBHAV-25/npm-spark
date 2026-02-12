@@ -412,7 +412,7 @@ async function fetchVersionChanges(
 }
 
 export function VersionDiff({ packageName, versions }: VersionDiffProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [fromVersion, setFromVersion] = useState(versions[1] || versions[0]);
   const [toVersion, setToVersion] = useState(versions[0]);
   const [activeTab, setActiveTab] = useState<'overview' | 'steps' | 'dependencies' | 'code' | 'issues'>('overview');
