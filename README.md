@@ -136,12 +136,52 @@ A revolutionary NPM package explorer that goes far beyond traditional package se
 - 🔴 **Breaking Changes Counter**: Know what you're facing upfront
 
 **📚 Package-Specific Knowledge Base:**
-Built-in expert guides for popular packages:
-- **React** (16→17, 16→18, 17→18) - Root API, batching, concurrent rendering
-- **Vue** (2→3) - Composition API, createApp, v-model changes
-- **Angular** (12→13) - Ivy migration, IE11 removal
-- **Next.js** (12→13) - Image component, font optimization
-- **TypeScript** (4→5) - Module resolution, decorator changes
+Built-in expert guides for **30+ popular packages** and version migrations:
+
+**🎨 Frontend Frameworks:**
+- **React** (16→17, 16→18, 17→18) - Event pooling, Root API, batching, concurrent rendering
+- **Vue** (2→3) - Composition API, createApp, v-model changes, functional components
+- **Angular** (12→13) - Ivy migration, IE11 removal, View Engine removal
+- **Svelte** (3→4) - Compiler improvements, Node.js requirements
+- **Next.js** (12→13) - Image component, font optimization, app directory
+
+**🏗️ Build Tools:**
+- **Vite** (3→4, 4→5) - Rollup updates, CJS deprecation, Node.js requirements
+- **Webpack** (4→5) - Asset modules, Node.js polyfills, Module Federation
+- **TypeScript** (3→4, 4→5) - Module resolution, const inference, decorators
+
+**🎨 UI Libraries:**
+- **Tailwind CSS** (2→3) - JIT mode, dark mode, color palette redesign
+- **Material-UI/MUI** (4→5) - Package rename, theme structure, Emotion
+- **Styled Components** (5→6) - Transient props, React 18 optimizations
+
+**🧪 Testing:**
+- **Jest** (27→28, 28→29) - Test environment, snapshot format, Node.js requirements
+- **Vitest** (0→1) - Vite 5 requirement, configuration changes
+- **Cypress** (9→10, 10→11, 11→12, 12→13) - Visit behavior, component testing
+- **Playwright** (1→2) - API changes, browser contexts
+
+**🗄️ Backend & Database:**
+- **Express** (4→5) - Router paths, query parsing, Node.js 18+
+- **Prisma** (4→5) - TypedSQL, Node.js 16+, client API
+- **Redux Toolkit** (1→2) - React 18, immer v10, RTK Query
+
+**🛠️ Utilities & Tools:**
+- **ESLint** (7→8, 8→9) - Flat config, Node.js requirements, plugin updates
+- **Axios** (0→1) - JSON transformation, IE11 removal, timeout behavior
+- **React Router** (5→6) - Routes API, useNavigate, element prop
+- **Sass/Node-Sass** - Math.div(), Dart Sass migration
+- **PostCSS** (7→8) - Async API, plugin updates
+- **pnpm** (7→8, 8→9) - Lockfile format, peer dependencies
+
+**🚀 Meta Frameworks:**
+- **Nuxt** (2→3) - Vue 3, Vite, auto-imports, folder structure
+- **SvelteKit** (1→2) - Vite 5, load function, form actions
+- **Remix** (1→2) - Vite default, flat routes
+
+**📦 Others:**
+- **Zod** (2→3) - Schema methods, type inference
+- And intelligent fallbacks for 1000+ other packages!
 
 **🪜 Comprehensive Migration Steps (8-15 Steps):**
 1. 🔒 **Backup Branch Creation** - Git commands for safety
@@ -159,10 +199,23 @@ Built-in expert guides for popular packages:
 13. 🚀 **Staging Deployment** - Pre-production validation
 
 **💻 Real Code Migration Examples:**
-- **Before/After Comparisons**: See exact code changes needed
-- **Syntax Highlighting**: Easy-to-read diffs
-- **Detailed Reasons**: Understand WHY changes are needed
-- **Package-Specific Examples**: React root API, Vue createApp, etc.
+- **Before/After Comparisons**: See exact code changes needed with side-by-side diffs
+- **Syntax Highlighting**: Color-coded for easy reading (red for old, green for new)
+- **Detailed Reasons**: Understand WHY each change is necessary
+- **Package-Specific Examples**: Real-world code from React root API, Vue createApp, MUI imports, etc.
+- **Category-Based Fallbacks**: Even unknown packages get relevant examples based on type (framework/build-tool/UI/testing)
+
+**🎯 Intelligent Package Category Detection:**
+When package-specific knowledge isn't available, the AI automatically detects:
+- **🎨 Frontend Frameworks** - Component lifecycle, rendering, build config guidance
+- **🔧 Build Tools** - Plugin API, configuration format, output handling
+- **🎨 UI Libraries** - Component props, theme structure, CSS classes
+- **🧪 Testing Tools** - Config format, matchers, mocks, test environment
+- **💾 Database/ORM** - Query API, schema, migrations, connections
+- **⌨️ CLI Tools** - Command syntax, flags, configuration
+- **🔧 Utilities** - API signatures, return types, tree-shaking
+
+And provides **category-specific breaking changes**, **migration steps**, and **common issues**!
 
 **📦 Dependency Update Analysis:**
 - **Critical vs Non-Critical**: Priority-based updates
@@ -171,14 +224,17 @@ Built-in expert guides for popular packages:
 - **Ready-to-Use Commands**: Copy-paste npm install commands
 - **Removed Dependencies**: Identify what's no longer needed
 
-**🔧 Common Issues & Solutions (7+ Issues):**
-- **Module Not Found** → Cache clearing commands
-- **TypeScript Errors** → Type definition update guides
-- **Deprecated APIs** → Migration guide links with examples
-- **Test Failures** → Test utility update strategies
-- **Build Errors** → Bundler configuration fixes
-- **Runtime Errors** → Peer dependency resolution
-- **Dependency Conflicts** → npm ls resolution workflow
+**🔧 Comprehensive Common Issues & Solutions (7-12+ Issues):**
+- **Module Not Found** → 4-step cache clearing + export checking + reinstall process
+- **TypeScript Errors** → Type def updates + tsconfig changes + cache clearing + IDE restart
+- **Deprecated APIs** → Official docs + codebase search + automated codemod tools
+- **Test Failures** → Library updates + mock updates + snapshot regeneration
+- **Build Errors** → Bundler updates + plugin compatibility + config migration
+- **Runtime Errors** → Peer dependency audit + version conflict resolution
+- **Dependency Conflicts** → npm ls workflow + multi-package updates + legacy-peer-deps
+- **Category-Specific Issues**: Framework rendering, plugin compatibility, component props, query API, etc.
+- **Multi-Version Jump Recovery**: Incremental migration strategy for 2+ major versions
+- **Documentation Resources**: Multiple fallback options (npm home, GitHub, Stack Overflow, blogs)
 
 **🧪 Intelligent Testing Strategy:**
 Adaptive recommendations based on upgrade difficulty:
