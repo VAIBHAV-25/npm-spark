@@ -1214,7 +1214,7 @@ export function generateDetailedBreakingChanges(
   toMajor: number
 ): string[] {
   const changes: string[] = [];
-  
+
   // Check package-specific knowledge
   const key = `${fromMajor}->${toMajor}`;
   if (PACKAGE_KNOWLEDGE[packageName]?.[key]) {
@@ -1223,10 +1223,10 @@ export function generateDetailedBreakingChanges(
 
   // Package category detection for better generic guidance
   const packageCategory = detectPackageCategory(packageName);
-  
+
   // Generic AI-powered analysis based on version gap and package type
   const majorDiff = toMajor - fromMajor;
-  
+
   if (majorDiff >= 3) {
     changes.push(`⚠️ Massive upgrade: ${majorDiff} major versions ahead - Expect significant changes`);
     changes.push(`Core APIs and architecture likely completely restructured from v${fromMajor} to v${toMajor}`);
@@ -1297,50 +1297,50 @@ export function generateDetailedBreakingChanges(
   changes.push('⚙️ Default configurations and behavior may have changed');
   changes.push('🗑️ Deprecated exports, methods, or options from previous versions removed');
   changes.push('📝 TypeScript types may be stricter or restructured if using TypeScript');
-  
+
   return changes;
 }
 
 // Detect package category for better guidance
 function detectPackageCategory(packageName: string): string {
   const name = packageName.toLowerCase();
-  
-  if (name.includes('react') || name.includes('vue') || name.includes('angular') || 
-      name.includes('svelte') || name.includes('next') || name.includes('nuxt') ||
-      name.includes('gatsby') || name.includes('remix')) {
+
+  if (name.includes('react') || name.includes('vue') || name.includes('angular') ||
+    name.includes('svelte') || name.includes('next') || name.includes('nuxt') ||
+    name.includes('gatsby') || name.includes('remix')) {
     return 'framework';
   }
-  
+
   if (name.includes('webpack') || name.includes('vite') || name.includes('rollup') ||
-      name.includes('parcel') || name.includes('esbuild') || name.includes('turbo')) {
+    name.includes('parcel') || name.includes('esbuild') || name.includes('turbo')) {
     return 'build-tool';
   }
-  
+
   if (name.includes('mui') || name.includes('material') || name.includes('chakra') ||
-      name.includes('antd') || name.includes('ant-design') || name.includes('bootstrap') ||
-      name.includes('tailwind')) {
+    name.includes('antd') || name.includes('ant-design') || name.includes('bootstrap') ||
+    name.includes('tailwind')) {
     return 'ui-library';
   }
-  
+
   if (name.includes('jest') || name.includes('mocha') || name.includes('vitest') ||
-      name.includes('cypress') || name.includes('playwright') || name.includes('testing')) {
+    name.includes('cypress') || name.includes('playwright') || name.includes('testing')) {
     return 'testing';
   }
-  
+
   if (name.includes('prisma') || name.includes('typeorm') || name.includes('sequelize') ||
-      name.includes('mongoose') || name.includes('drizzle') || name.includes('knex')) {
+    name.includes('mongoose') || name.includes('drizzle') || name.includes('knex')) {
     return 'database';
   }
-  
+
   if (name.includes('cli') || name.includes('-cli')) {
     return 'cli';
   }
-  
+
   if (name.includes('lodash') || name.includes('ramda') || name.includes('date-fns') ||
-      name.includes('dayjs') || name.includes('axios') || name.includes('fetch')) {
+    name.includes('dayjs') || name.includes('axios') || name.includes('fetch')) {
     return 'utility';
   }
-  
+
   return 'generic';
 }
 
@@ -1482,8 +1482,8 @@ export function generateDetailedCommonIssues(
           solution: `1. Check if component APIs changed (props, lifecycle methods)\n2. Review framework-specific breaking changes in changelog\n3. Update component imports if package structure changed\n4. Test with React DevTools or framework-specific dev tools\n5. Check console for specific error messages and warnings`,
         },
         {
-          issue: '🔧 Build fails or dev server won't start',
-          solution: `1. Update your build tool (Webpack/Vite/etc) to compatible version\n2. Update framework-specific plugins and loaders\n3. Review build configuration for deprecated options\n4. Clear build cache: rm -rf .cache dist build\n5. Check Node.js version compatibility`,
+          issue: '🔧 Build fails or dev server won\'t start',
+          solution: `1. Update your build tool (Webpack/Vite/etc) to a compatible version\n2. Update framework-specific plugins and loaders\n3. Review build configuration for deprecated options\n4. Clear build cache: rm -rf .cache dist build\n5. Check Node.js version compatibility`,
         },
         {
           issue: '🧪 Tests failing after framework upgrade',
@@ -1603,7 +1603,7 @@ export function generateDetailedMigrationSteps(
   // Add category-specific steps
   switch (packageCategory) {
     case 'framework':
-  steps.push(
+      steps.push(
         '🔧 Update all component imports and framework-specific APIs',
         '🎨 Review and update component lifecycle methods if any',
         '🔌 Update related framework plugins and extensions',
